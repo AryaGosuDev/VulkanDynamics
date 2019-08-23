@@ -23,9 +23,6 @@
     <ClInclude Include="InputHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="VulkanDynamics.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>

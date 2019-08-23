@@ -1,7 +1,6 @@
 // VulkanDynamics.cpp
 //
 #include "VulkanDynamics.hpp"
-#include "Scene.h"
 #include "InputHandler.h"
 
 using std::cout;

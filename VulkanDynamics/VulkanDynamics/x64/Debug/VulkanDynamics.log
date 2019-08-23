@@ -1,18 +1,18 @@
 ﻿  VulkanDynamics.cpp
 c:\projects\vulkandynamics\vulkandynamics\vulkandynamics\inputhandler.h(24): warning C4305: 'initializing': truncation from 'double' to 'float'
-c:\projects\vulkandynamics\vulkandynamics\vulkandynamics\vulkandynamics.cpp(123): warning C4305: 'initializing': truncation from 'double' to 'float'
-c:\projects\vulkandynamics\vulkandynamics\vulkandynamics\vulkandynamics.cpp(152): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\projects\vulkandynamics\vulkandynamics\vulkandynamics\vulkandynamics.cpp(122): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\projects\vulkandynamics\vulkandynamics\vulkandynamics\vulkandynamics.cpp(151): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\projects\vulkandynamics\vulkandynamics\vulkandynamics\vulkandynamics.cpp(162): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
+          with
+          [
+              T=float
+          ]
 c:\projects\vulkandynamics\vulkandynamics\vulkandynamics\vulkandynamics.cpp(163): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
           with
           [
               T=float
           ]
 c:\projects\vulkandynamics\vulkandynamics\vulkandynamics\vulkandynamics.cpp(164): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
-          with
-          [
-              T=float
-          ]
-c:\projects\vulkandynamics\vulkandynamics\vulkandynamics\vulkandynamics.cpp(165): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
           with
           [
               T=float

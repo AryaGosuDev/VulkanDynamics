@@ -30,7 +30,7 @@ void main() {
 								ufbo.LinearAttenuation * lightDistance + 
 								ufbo.QuadraticAttenuation * lightDistance * lightDistance);
 	// the direction of maximum highlight also changes per fragment
-	vec3 halfVector = normalize(lightDirectionView +   vec3( vec3(ufbo.EyeDirection) - vec3(Position) )  );
+	vec3 halfVector = normalize(lightDirectionView + vec3( vec3(ufbo.EyeDirection) - vec3(Position) )  );
 
 	float diffuse = max(0.0f, dot(Normal, lightDirectionView));
 	float specular = pow ( max (dot (Normal, halfVector), 0.0f), ufbo.Shininess );
@@ -43,6 +43,6 @@ void main() {
 	
 	//vec3 rgb = min(fragColor.rgb * scatteredLight + reflectedLight ,vec3(1.0));
 
-    //outColor = vec4 ( scatteredLight + reflectedLight , 1.0f );
-	outColor = vec4 ( scatteredLight  , 1.0f );
+    outColor = vec4 ( scatteredLight + reflectedLight , 1.0f );
+	//outColor = vec4 ( scatteredLight  , 1.0f );
 }
