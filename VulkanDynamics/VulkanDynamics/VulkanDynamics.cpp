@@ -21,7 +21,7 @@ glm::mat4 viewMatrix;
 glm::mat4 eyeviewMatrix;
 glm::vec4 ambientLight(0.1f, 0.1f, 0.1f, 1.0f);
 glm::vec4 lightColor ( 0.8f, 0.8f, 0.8f, 1.0f );
-glm::vec4 LightPosition ( 0.0f, 5.0f, 0.0f, 1.0f );
+glm::vec4 LightPosition ( 0.0f, -5.0f, 0.0f, 1.0f );
 float Shininess = 1.1f;
 float Strength = 60.0f;
 glm::vec4 EyeDirection ( 0.1f,1.0f, -3.0f, 1.0f );

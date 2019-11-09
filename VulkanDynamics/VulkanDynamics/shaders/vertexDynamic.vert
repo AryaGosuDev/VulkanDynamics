@@ -33,7 +33,7 @@ void main() {
 	Normal = normalize( mat3(transpose(inverse(ubo.view * uboDyn.model ))) *  VertexNormal);
 	LightPos = vec3( ubo.view * ubo.lightPos);
     fragColor = color;
-	
-	Position = ubo.proj * ubo.view * uboDyn.model * transpose(translateToCenter) * vec4(position, 1.0f);
-	gl_Position = Position ;
+	Position = ubo.view * uboDyn.model * transpose(translateToCenter) * vec4(position, 1.0f);
+	vec4 glPosition = ubo.proj * ubo.view * uboDyn.model * transpose(translateToCenter) * vec4(position, 1.0f);
+	gl_Position = glPosition ;
 }
