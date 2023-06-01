@@ -28,7 +28,6 @@ namespace VkApplication {
         uboDynamicLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
         
         std::array<VkDescriptorSetLayoutBinding, 3> bindings = { uboLayoutBinding, fragmentLayoutBinding, uboDynamicLayoutBinding };
-        //std::array<VkDescriptorSetLayoutBinding, 1> bindings = { uboLayoutBinding };
         VkDescriptorSetLayoutCreateInfo layoutInfo{};
         layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -42,11 +41,8 @@ namespace VkApplication {
     void MainVulkApplication::createDescriptorPool() {
         std::array<VkDescriptorPoolSize, 2> poolSizes{};
         poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        //poolSizes[0].descriptorCount = static_cast<uint32_t>(swapChainImages.size());
         poolSizes[0].descriptorCount = 2;
-        //poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         poolSizes[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-        //poolSizes[1].descriptorCount = static_cast<uint32_t>(swapChainImages.size());
         poolSizes[1].descriptorCount = 1;
 
         VkDescriptorPoolCreateInfo poolInfo{};
@@ -87,14 +83,7 @@ namespace VkApplication {
             VkDescriptorBufferInfo bufferDynamicInfo = {};
             bufferDynamicInfo.buffer = uniformDynamicBuffers[i];
             bufferDynamicInfo.offset = 0;
-            //bufferDynamicInfo.range = sizeof(glm::mat4);
-            //bufferDynamicInfo.range = bufferDynamicSize;
             bufferDynamicInfo.range = sizeof(glm::mat4);
-
-            //VkDescriptorImageInfo imageInfo{};
-            //imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            //imageInfo.imageView = textureImageView;
-            //imageInfo.sampler = textureSampler;
 
             std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
 
@@ -121,7 +110,6 @@ namespace VkApplication {
             descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
             descriptorWrites[2].descriptorCount = 1;
             descriptorWrites[2].pBufferInfo = &bufferDynamicInfo;
-            descriptorWrites[2].pNext = NULL;
             
             vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
         }

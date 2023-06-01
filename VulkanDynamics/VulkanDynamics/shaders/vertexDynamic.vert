@@ -41,8 +41,8 @@ void main() {
 		vec3(0.f,-1.f, 0.0f)
 	);
 
-	gl_Position = vec4(positions[gl_VertexIndex], 1.0f);
+	//gl_Position = vec4(positions[gl_VertexIndex], 1.0f);
 
 
-	//gl_Position = glPosition ;
+	gl_Position = glPosition ;
 }

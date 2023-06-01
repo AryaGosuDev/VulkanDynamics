@@ -21,12 +21,12 @@ namespace VkApplication {
         }
 
         updateUniformBuffer(imageIndex);
-        /*
+        
         if (imagesInFlight[imageIndex] != VK_NULL_HANDLE) {
             vkWaitForFences(device, 1, &imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
         }
         imagesInFlight[imageIndex] = inFlightFences[currentFrame];
-        */
+        
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
@@ -47,7 +47,7 @@ namespace VkApplication {
 
         VkResult returnThis = vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]);
         if (returnThis != VK_SUCCESS) {
-            throw std::runtime_error("failed to submit draw command buffer! " + returnThis );
+            throw std::runtime_error("failed to submit draw command buffer! " + std::to_string(returnThis) );
         }
 
         VkPresentInfoKHR presentInfo{};
@@ -56,11 +56,13 @@ namespace VkApplication {
         presentInfo.waitSemaphoreCount = 1;
         presentInfo.pWaitSemaphores = signalSemaphores;
 
+        std::vector<VkResult> presentResults(swapChainImages.size());
+
         VkSwapchainKHR swapChains[] = { swapChain };
         presentInfo.swapchainCount = 1;
         presentInfo.pSwapchains = swapChains;
         presentInfo.pImageIndices = &imageIndex;
-        presentInfo.pResults = nullptr;
+        presentInfo.pResults = presentResults.data();
 
         result = vkQueuePresentKHR(presentQueue, &presentInfo);
 
@@ -117,7 +119,7 @@ namespace VkApplication {
 
         void* data;
         vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, vertices.data(), (size_t)bufferSize);
+        memcpy(data, vertices.data(), static_cast<size_t>(bufferSize));
         vkUnmapMemory(device, stagingBufferMemory);
 
         createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
@@ -140,7 +142,7 @@ namespace VkApplication {
 
         void* data;
         vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, indices.data(), (size_t)bufferSize);
+        memcpy(data, indices.data(), static_cast<size_t>(bufferSize));
         vkUnmapMemory(device, stagingBufferMemory);
 
         createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 
@@ -214,7 +216,7 @@ namespace VkApplication {
         if (minUboAlignment > 0) {
             dynamicAlignment = (dynamicAlignment + minUboAlignment - 1) & ~(minUboAlignment - 1);
         }
-        //dynamicAlignment = minUboAlignment;
+        dynamicAlignment = minUboAlignment;
 
         // add one for ground
         bufferDynamicSize = (numberOfSpheres + 1) * dynamicAlignment;
@@ -257,6 +259,7 @@ namespace VkApplication {
         for (size_t i = 0; i < commandBuffers.size(); i++) {
             VkCommandBufferBeginInfo beginInfo{};
             beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+            beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
 
             if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS) {
                 throw std::runtime_error("failed to begin recording command buffer!");
@@ -300,10 +303,12 @@ namespace VkApplication {
                 vkCmdDrawIndexed(commandBuffers[i], 240, 1, j * 240, 0, 0);
                 //vkCmdDrawIndexed(commandBuffers[i], 240, 1, 1 , 0, 0);
             }
-            
-            //vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[i], 0, nullptr);
 
-            //vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+            //draw ground
+            dynamicOffset = numberOfSpheres * static_cast<uint32_t>(dynamicAlignment);
+            vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[i], 1, &dynamicOffset);
+
+            vkCmdDrawIndexed(commandBuffers[i], 6, 1, numberOfSpheres * 240, 0, 0);
 
             vkCmdEndRenderPass(commandBuffers[i]);
 
@@ -370,6 +375,7 @@ namespace VkApplication {
         dependency.dstSubpass = 0;
         dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         dependency.srcAccessMask = 0;
+        //dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
         dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 

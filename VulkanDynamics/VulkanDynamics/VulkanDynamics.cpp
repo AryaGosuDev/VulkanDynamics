@@ -82,8 +82,8 @@ namespace VkApplication {
 		for (int i = 0; i < numberOfSpheres; ++i) {
 			glm::mat4* modelMat = (glm::mat4*)(((uint64_t)_app->uboDataDynamic.model + (i * _app->dynamicAlignment)));
 
-			*modelMat = glm::rotate(glm::mat4(1.0f), (float)glm::radians(phi), glm::vec3(0.0f, 1.0f, 0.0f));
-			*modelMat *= glm::rotate(glm::mat4(1.0f), (float)glm::radians(theta), glm::vec3(1.0f, 0.0f, 0.0f));
+			//*modelMat = glm::rotate(glm::mat4(1.0f), (float)glm::radians(phi), glm::vec3(0.0f, 1.0f, 0.0f));
+			//*modelMat *= glm::rotate(glm::mat4(1.0f), (float)glm::radians(theta), glm::vec3(1.0f, 0.0f, 0.0f));
 		}
 
 		if (changeLightPos[0] == 1) {
