@@ -43,6 +43,7 @@ void main() {
 	
 	//vec3 rgb = min(fragColor.rgb * scatteredLight + reflectedLight ,vec3(1.0));
 
-    outColor = vec4 ( scatteredLight + reflectedLight , 1.0f );
+    //outColor = vec4 ( scatteredLight + reflectedLight , 1.0f );
 	//outColor = vec4 ( scatteredLight  , 1.0f );
+	outColor = vec4 ( 1.0f,1.0f,1.0f, 1.0f );
 }

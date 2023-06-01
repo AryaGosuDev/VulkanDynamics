@@ -18,25 +18,25 @@ double pointy;
 
 bool activateTrans = false;
 
-float lightPositionx = 0.0;
-float lightPositionz = 0.0;
-float lightPositiony = 0.0;
-float lightPositionIncrement = 0.7;
+float lightPositionx = 0.0f;
+float lightPositionz = 0.0f;
+float lightPositiony = 0.0f;
+float lightPositionIncrement = 0.7f;
 char changeLightPos[3] = {};
 double theta = 0.0;
 double phi = 0.0;
 float eyex;
 float eyey;
 float eyez;
-float eyer = -5.0;
+float eyer = -5.0f;
 float gazex;
 float gazey;
-float gazez = -5;
-float angle = 0;    // in degrees
-float angle2 = 0;   // in degrees 
-float angle3 = 0;   // in degrees
+float gazez = -5.0f;
+float angle = 0.0f;    // in degrees
+float angle2 = 0.0f;   // in degrees 
+float angle3 = 0.0f;   // in degrees
 
-GLfloat zdistance = 0.0;
+GLfloat zdistance = 0.0f;
 
 void readInput_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if (key == GLFW_KEY_S && action == GLFW_PRESS) {
@@ -75,10 +75,6 @@ void readInput_callback(GLFWwindow* window, int key, int scancode, int action, i
 	else if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
 		lightPositionz = lightPositionIncrement;
 		changeLightPos[2] = 1;
-	}
-
-	else if (key == GLFW_KEY_S && action == GLFW_PRESS) {
-
 	}
 }
 

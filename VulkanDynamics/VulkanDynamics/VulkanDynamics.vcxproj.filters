@@ -15,29 +15,52 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="VulkanDynamics.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    <None Include="shaders\vertex.vert" />
+    <None Include="shaders\fragment.frag" />
+    <None Include="shaders\fragmentDynamic.frag" />
+    <None Include="shaders\vertexDynamic.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="InputHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VulkanDynamics.hpp">
+    <ClInclude Include="ValidationLayers.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ValidationLayers.hpp">
+    <ClInclude Include="VulkanDevice.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanDraw.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanGeometry.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanInstance.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanRenderSettings.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanSwapchain.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanSync.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanTemplate.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanTexture.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanWindow.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\vertex.vert" />
-    <None Include="shaders\fragment.frag" />
-    <None Include="shaders\fragmentNew.frag" />
-    <None Include="shaders\vertexNew.vert" />
-    <None Include="shaders\fragmentInter.frag" />
-    <None Include="shaders\vertexInter.vert" />
-    <None Include="shaders\fragmentDynamic.frag" />
-    <None Include="shaders\vertexDynamic.vert" />
+    <ClCompile Include="VulkanDynamics.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

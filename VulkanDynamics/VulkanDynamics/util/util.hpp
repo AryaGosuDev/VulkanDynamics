@@ -99,6 +99,32 @@
 std::string get_base_data_dir();
 std::string get_data_dir(std::string filename);
 
+constexpr auto vkStatusResult = [](int a) {
+    switch (a) {
+    case VkResult::VK_SUCCESS: return "VK_SUCCESS"; break;
+    case VkResult::VK_NOT_READY: return "VK_NOT_READY"; break;
+    case VkResult::VK_TIMEOUT: return "VK_TIMEOUT"; break;
+    case VkResult::VK_EVENT_SET: return "VK_EVENT_SET"; break;
+    case VkResult::VK_EVENT_RESET: return "VK_EVENT_RESET"; break;
+    case VkResult::VK_INCOMPLETE: return "VK_INCOMPLETE"; break;
+    case VkResult::VK_ERROR_OUT_OF_HOST_MEMORY: return "VK_ERROR_OUT_OF_HOST_MEMORY"; break;
+    case VkResult::VK_ERROR_OUT_OF_DEVICE_MEMORY: return "VK_ERROR_OUT_OF_DEVICE_MEMORY"; break;
+    case VkResult::VK_ERROR_INITIALIZATION_FAILED: return "VK_ERROR_INITIALIZATION_FAILED"; break;
+    case VkResult::VK_ERROR_DEVICE_LOST: return "VK_ERROR_DEVICE_LOST"; break;
+    case VkResult::VK_ERROR_MEMORY_MAP_FAILED: return "VK_ERROR_MEMORY_MAP_FAILED"; break;
+    case VkResult::VK_ERROR_LAYER_NOT_PRESENT: return "VK_ERROR_LAYER_NOT_PRESENT"; break;
+    case VkResult::VK_ERROR_EXTENSION_NOT_PRESENT: return "VK_ERROR_EXTENSION_NOT_PRESENT"; break;
+    case VkResult::VK_ERROR_FEATURE_NOT_PRESENT: return "VK_ERROR_FEATURE_NOT_PRESENT"; break;
+    case VkResult::VK_ERROR_INCOMPATIBLE_DRIVER: return "VK_ERROR_INCOMPATIBLE_DRIVER"; break;
+    case VkResult::VK_ERROR_TOO_MANY_OBJECTS: return "VK_ERROR_TOO_MANY_OBJECTS"; break;
+    case VkResult::VK_ERROR_FORMAT_NOT_SUPPORTED: return "VK_ERROR_FORMAT_NOT_SUPPORTED"; break;
+    case VkResult::VK_ERROR_FRAGMENTED_POOL: return "VK_ERROR_FRAGMENTED_POOL"; break;
+    case VkResult::VK_ERROR_OUT_OF_POOL_MEMORY: return "VK_ERROR_OUT_OF_POOL_MEMORY"; break;
+    case VkResult::VK_ERROR_INVALID_EXTERNAL_HANDLE: return "VK_ERROR_INVALID_EXTERNAL_HANDLE"; break;
+    default: return " "; break; 
+    }
+};
+
 /*
  * structure to track all objects related to a texture.
  */

@@ -1,20 +1,3 @@
 ﻿  VulkanDynamics.cpp
-c:\projects\vulkandynamics\vulkandynamics\vulkandynamics\inputhandler.h(24): warning C4305: 'initializing': truncation from 'double' to 'float'
-c:\projects\vulkandynamics\vulkandynamics\vulkandynamics\vulkandynamics.cpp(122): warning C4305: 'initializing': truncation from 'double' to 'float'
-c:\projects\vulkandynamics\vulkandynamics\vulkandynamics\vulkandynamics.cpp(151): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\projects\vulkandynamics\vulkandynamics\vulkandynamics\vulkandynamics.cpp(162): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
-          with
-          [
-              T=float
-          ]
-c:\projects\vulkandynamics\vulkandynamics\vulkandynamics\vulkandynamics.cpp(163): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
-          with
-          [
-              T=float
-          ]
-c:\projects\vulkandynamics\vulkandynamics\vulkandynamics\vulkandynamics.cpp(164): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
-          with
-          [
-              T=float
-          ]
-  VulkanDynamics.vcxproj -> C:\Projects\VulkanDynamics\VulkanDynamics\x64\Debug\VulkanDynamics.exe
+C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanWindow.hpp(11,70): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+  VulkanDynamics.vcxproj -> C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\x64\Debug\VulkanDynamics.exe
