@@ -1,3 +1,4 @@
 ﻿  VulkanDynamics.cpp
-C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanWindow.hpp(11,70): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanImgui.hpp(48,34): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanImgui.hpp(48,27): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
   VulkanDynamics.vcxproj -> C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\x64\Debug\VulkanDynamics.exe

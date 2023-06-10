@@ -8,6 +8,7 @@
 
 bool stopAnimation = true;
 int motionMode = 0;
+bool motionFlying = false;
 double startX = 0;
 double startY = 0;
 
@@ -25,16 +26,6 @@ float lightPositionIncrement = 0.7f;
 char changeLightPos[3] = {};
 double theta = 0.0;
 double phi = 0.0;
-float eyex;
-float eyey;
-float eyez;
-float eyer = -5.0f;
-float gazex;
-float gazey;
-float gazez = -5.0f;
-float angle = 0.0f;    // in degrees
-float angle2 = 0.0f;   // in degrees 
-float angle3 = 0.0f;   // in degrees
 
 GLfloat zdistance = 0.0f;
 
@@ -84,13 +75,14 @@ void mouse_cursor_callback(GLFWwindow* window, double xpos, double ypos) {
 
 	if (lbutton_down) {
 
-		phi += (xpos - startX) / 10.0;
+		phi += (xpos - startX);
 		startX = xpos;
-		theta += (ypos - startY) / 10.0;
+		theta += (ypos - startY);
 		startY = ypos;
+		std::cout << phi << std::endl;
 	}
 }
-
+ 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
 
 	if (button == GLFW_MOUSE_BUTTON_LEFT ) {
@@ -98,9 +90,12 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 			lbutton_down = true;
 			startX = pointx;
 			startY = pointy;	
+			motionFlying = true;
 		}
-		else if (GLFW_RELEASE == action)
+		else if (GLFW_RELEASE == action) {
 			lbutton_down = false;
+			motionFlying = false;
+		}
 	}
 }
 #endif 

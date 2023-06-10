@@ -26,7 +26,6 @@ namespace VkApplication {
 	perspectiveData pD;
 
 	// storage for matrices
-	float projMatrix[16];
 	glm::mat4 viewMatrix;
 	glm::mat4 eyeviewMatrix;
 	glm::vec4 ambientLight(0.1f, 0.1f, 0.1f, 1.0f);
@@ -40,18 +39,18 @@ namespace VkApplication {
 	float QuadraticAttenuation = 0.0f;
 	glm::mat4 normalModelViewMatrix;
 
-	std::stack<float*> first;
-	float tempMatrix[16];
-
-	glm::vec3 mainEyeLoc(4.0, 4.0, 4.0);
+	glm::vec3 mainEyeLoc(6.0, 0.0, 0.0);
 	glm::vec3 centerLoc(0.0, 0.0, 0.0);
 	glm::vec3 up(0.0, 1.0, 0.0);
 	float fov = glm::radians<float>(90.0f);
+	glm::mat4 copyView;
+	glm::vec3 spindleAxis = glm::cross(mainEyeLoc, up);
 
 	//need to load in the value of the uniform buffers for the frag and vert shader + load attributes
 	void loadInitialVariables(VkApplication::MainVulkApplication* _app) {
 		_app->ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 		_app->ubo.view = glm::lookAt(mainEyeLoc, centerLoc, up);
+		copyView = _app->ubo.view;
 		_app->ubo.proj = glm::perspective(fov, _app->swapChainExtent.width / (float)_app->swapChainExtent.height, 0.1f, 9.0f);
 		_app->ubo.proj[1][1] *= -1.0f;
 		glm::mat3 viewMatrix3x3(_app->ubo.view * _app->ubo.model);
@@ -68,24 +67,18 @@ namespace VkApplication {
 		_app->ufo.QuadraticAttenuation = QuadraticAttenuation;
 		_app->ufo.viewMatrix = glm::inverseTranspose(viewMatrix3x3);;
 		_app->ufo.eyeViewMatrix = glm::inverseTranspose(viewMatrix3x3);
-
-		//initialize last one for ground
-		for (int i = 0; i <= numberOfSpheres; ++i) {
-			glm::mat4* modelMat = (glm::mat4*)(((uint64_t)_app->uboDataDynamic.model + (i * _app->dynamicAlignment)));
-
-			*modelMat = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		}
 	}
 
 	void updateUniformBuffer(VkApplication::MainVulkApplication* _app) {
-
-		for (int i = 0; i < numberOfSpheres; ++i) {
-			glm::mat4* modelMat = (glm::mat4*)(((uint64_t)_app->uboDataDynamic.model + (i * _app->dynamicAlignment)));
-
-			//*modelMat = glm::rotate(glm::mat4(1.0f), (float)glm::radians(phi), glm::vec3(0.0f, 1.0f, 0.0f));
-			//*modelMat *= glm::rotate(glm::mat4(1.0f), (float)glm::radians(theta), glm::vec3(1.0f, 0.0f, 0.0f));
+		if (motionFlying == true) {
+			spindleAxis = glm::cross(mainEyeLoc, up);
+			//spindleAxis = glm::rotateY(spindleAxis, glm::radians((float)((phi / 180.0f) * glm::pi<float>())));
+			//spindleAxis = glm::rotate(spindleAxis, glm::radians((float)((phi / 180.0f) * glm::pi<float>())), glm::vec3(0.0f, 1.0f, 0.0f));
+			
+			_app->ubo.view = copyView * glm::rotate(glm::mat4(1.0f), glm::radians((float)((theta / 180.0f) * glm::pi<float>())), spindleAxis);
+			_app->ubo.view *= glm::rotate(glm::mat4(1.0f), glm::radians((float)((phi / 180.0f) * glm::pi<float>())), up); 
 		}
-
+		
 		if (changeLightPos[0] == 1) {
 			_app->ubo.lightPos.x += lightPositionx;
 			changeLightPos[0] = 0;
@@ -111,7 +104,20 @@ namespace VkApplication {
 		while (!(WindowRes = glfwWindowShouldClose(_app->window))) {
 			glfwPollEvents();
 			updateUniformBuffer(_app);
+
+			// Update imGui
+			ImGuiIO& io = ImGui::GetIO();
+
+			io.DisplaySize = ImVec2((float)_app->WIDTH, (float)_app->HEIGHT);
+			//io.DeltaTime = frameTimer;
+
+			//io.MousePos = ImVec2(mousePos.x, mousePos.y);
+			//io.MouseDown[0] = mouseButtons.left && UIOverlay.visible;
+			//io.MouseDown[1] = mouseButtons.right && UIOverlay.visible;
+			//io.MouseDown[2] = mouseButtons.middle && UIOverlay.visible;
+
 			_app->drawFrame();
+			//_app->RenderIMGui();
 		}
 
 		vkDeviceWaitIdle(_app->device);

@@ -166,12 +166,16 @@
     <None Include="shaders\fragmentDynamic.frag">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </None>
+    <None Include="shaders\fragmentDynamicSimple.frag" />
+    <None Include="shaders\ui.frag" />
+    <None Include="shaders\ui.vert" />
     <None Include="shaders\vertexDynamic.vert">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </None>
     <None Include="shaders\vertex.vert">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </None>
+    <None Include="shaders\vertexDynamicSimple.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="InputHandler.h" />
@@ -179,15 +183,24 @@
     <ClInclude Include="VulkanDevice.hpp" />
     <ClInclude Include="VulkanDraw.hpp" />
     <ClInclude Include="VulkanGeometry.hpp" />
+    <ClInclude Include="VulkanImgui.hpp" />
     <ClInclude Include="VulkanInstance.hpp" />
     <ClInclude Include="VulkanRenderSettings.hpp" />
     <ClInclude Include="VulkanSwapchain.hpp" />
     <ClInclude Include="VulkanSync.hpp" />
     <ClInclude Include="VulkanTemplate.hpp" />
     <ClInclude Include="VulkanTexture.hpp" />
+    <ClInclude Include="VulkanTools.hpp" />
     <ClInclude Include="VulkanWindow.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="imgui\imgui.cpp" />
+    <ClCompile Include="imgui\imgui_demo.cpp" />
+    <ClCompile Include="imgui\imgui_draw.cpp" />
+    <ClCompile Include="imgui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="imgui\imgui_impl_vulkan.cpp" />
+    <ClCompile Include="imgui\imgui_tables.cpp" />
+    <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="VulkanDynamics.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

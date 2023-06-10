@@ -22,10 +22,12 @@ namespace VkApplication {
 
         updateUniformBuffer(imageIndex);
         
+        /*
         if (imagesInFlight[imageIndex] != VK_NULL_HANDLE) {
             vkWaitForFences(device, 1, &imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
         }
         imagesInFlight[imageIndex] = inFlightFences[currentFrame];
+        /*/
         
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -43,7 +45,7 @@ namespace VkApplication {
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = signalSemaphores;
 
-        vkResetFences(device, 1, &inFlightFences[currentFrame]);
+        check_vk_result(vkResetFences(device, 1, &inFlightFences[currentFrame]));
 
         VkResult returnThis = vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]);
         if (returnThis != VK_SUCCESS) {
@@ -62,7 +64,7 @@ namespace VkApplication {
         presentInfo.swapchainCount = 1;
         presentInfo.pSwapchains = swapChains;
         presentInfo.pImageIndices = &imageIndex;
-        presentInfo.pResults = presentResults.data();
+        //presentInfo.pResults = presentResults.data();
 
         result = vkQueuePresentKHR(presentQueue, &presentInfo);
 
@@ -102,10 +104,6 @@ namespace VkApplication {
         memcpy(data2, &ufo, sizeof(ufo));
         vkUnmapMemory(device, uniformFragBuffersMemory[currentImage]);
 
-        void* data3;
-        vkMapMemory(device, uniformDynamicBuffersMemory[currentImage], 0, bufferDynamicSize, 0, &data3);
-        memcpy(data3, uboDataDynamic.model, bufferDynamicSize);
-        vkUnmapMemory(device, uniformDynamicBuffersMemory[currentImage]);
     }
 
     void MainVulkApplication::createVertexBuffer() {
@@ -204,26 +202,6 @@ namespace VkApplication {
         uniformFragBuffers.resize(swapChainImages.size());
         uniformFragBuffersMemory.resize(swapChainImages.size());
 
-        uniformDynamicBuffers.resize(swapChainImages.size());
-        uniformDynamicBuffersMemory.resize(swapChainImages.size());
-
-        VkPhysicalDeviceProperties physicalProperties = {};
-        vkGetPhysicalDeviceProperties(physicalDevice, &physicalProperties);
-
-        size_t minUboAlignment = physicalProperties.limits.minUniformBufferOffsetAlignment;
-
-        dynamicAlignment = sizeof(glm::mat4);
-        if (minUboAlignment > 0) {
-            dynamicAlignment = (dynamicAlignment + minUboAlignment - 1) & ~(minUboAlignment - 1);
-        }
-        dynamicAlignment = minUboAlignment;
-
-        // add one for ground
-        bufferDynamicSize = (numberOfSpheres + 1) * dynamicAlignment;
-
-        uboDataDynamic.model = (glm::mat4*)malloc(bufferDynamicSize);
-        assert(uboDataDynamic.model);
-
         for (size_t i = 0; i < swapChainImages.size(); i++) {
             /*
             createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
@@ -237,9 +215,6 @@ namespace VkApplication {
             createBuffer(bufferFragSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
                          uniformFragBuffers[i], uniformFragBuffersMemory[i]);
-            createBuffer(bufferDynamicSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
-                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
-                         uniformDynamicBuffers[i], uniformDynamicBuffersMemory[i]);
         }
     }
 
@@ -252,19 +227,20 @@ namespace VkApplication {
         allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
         allocInfo.commandBufferCount = (uint32_t)commandBuffers.size();
 
-        if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
+        if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS) 
             throw std::runtime_error("failed to allocate command buffers!");
-        }
+        
+        newFrame( true);
+        gui_updateBuffers();
 
         for (size_t i = 0; i < commandBuffers.size(); i++) {
             VkCommandBufferBeginInfo beginInfo{};
             beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-            beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+            //beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
 
-            if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS) {
+            if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS) 
                 throw std::runtime_error("failed to begin recording command buffer!");
-            }
-
+            
             VkRenderPassBeginInfo renderPassInfo{};
             renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
             renderPassInfo.renderPass = renderPass;
@@ -281,7 +257,6 @@ namespace VkApplication {
             renderPassInfo.pClearValues = clearValues.data();
 
             vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
             vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
             VkBuffer vertexBuffers[] = { vertexBuffer };
@@ -290,25 +265,13 @@ namespace VkApplication {
             vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
             vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-            uint32_t dynamicOffset;
-
-            for (uint32_t j = 0; j < numberOfSpheres; j++) {
-                // One dynamic offset per dynamic descriptor to offset into the ubo containing all model matrices
-                dynamicOffset = j * static_cast<uint32_t>(dynamicAlignment);
-                // Bind the descriptor set for rendering a mesh using the dynamic offset
-
-                vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, 
-                                        pipelineLayout, 0, 1, &descriptorSets[i], 1, &dynamicOffset);
-
-                vkCmdDrawIndexed(commandBuffers[i], 240, 1, j * 240, 0, 0);
-                //vkCmdDrawIndexed(commandBuffers[i], 240, 1, 1 , 0, 0);
-            }
-
             //draw ground
-            dynamicOffset = numberOfSpheres * static_cast<uint32_t>(dynamicAlignment);
-            vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[i], 1, &dynamicOffset);
+            
+            vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[i], 0, NULL);
 
-            vkCmdDrawIndexed(commandBuffers[i], 6, 1, numberOfSpheres * 240, 0, 0);
+            vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+
+            drawFrame(commandBuffers[i]);
 
             vkCmdEndRenderPass(commandBuffers[i]);
 
@@ -375,7 +338,6 @@ namespace VkApplication {
         dependency.dstSubpass = 0;
         dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         dependency.srcAccessMask = 0;
-        //dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
         dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
@@ -440,6 +402,5 @@ namespace VkApplication {
         vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
     }
 }
-
 
 #endif

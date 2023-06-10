@@ -27,6 +27,12 @@
 #include <glm/gtx/hash.hpp>
 #include <glm/ext/scalar_constants.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
+#include <glm/gtx/rotate_vector.hpp>
+
+#include "imgui/imgui.h"
+#include "imgui/imconfig.h"
+#include "imgui/imgui_impl_vulkan.h"
+#include "imgui/imgui_impl_glfw.h"
 
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan.hpp>
@@ -46,6 +52,14 @@ constexpr bool enableValidationLayers = false;
 
 #include "ValidationLayers.hpp"
 
+static void check_vk_result(VkResult err) {
+	if (err == 0)
+		return;
+	fprintf(stderr, "[vulkan] Error: VkResult = %d\n", err);
+	if (err < 0)
+		abort();
+}
+
 namespace VkApplication{
 
 	constexpr int MAX_FRAMES_IN_FLIGHT = 2;
@@ -53,8 +67,8 @@ namespace VkApplication{
 	const int numberOfSpheres = 1;
 
 	//const std::string MODEL_PATH = "models/chalet.obj";
-	//const std::string MODEL_PATH = "models/FelModelReal.obj";
-	const std::string MODEL_PATH = "models/FelSimple.obj";
+	const std::string MODEL_PATH = "models/FelModelReal.obj";
+	//const std::string MODEL_PATH = "models/FelSimple.obj";
 	const std::string TEXTURE_PATH = "textures/chalet.jpg";
 	const std::string GROUND_PATH = "models/ground.obj";
 	const std::string VASE_PATH = "models/vase.obj";
@@ -77,7 +91,7 @@ namespace VkApplication{
 		std::vector<VkSurfaceFormatKHR> formats;
 		std::vector<VkPresentModeKHR> presentModes;
 	};
-
+	 
 struct Vertex {
 	glm::vec3 color;
 	glm::vec3 vertexNormal;
@@ -149,9 +163,6 @@ struct UniformFragmentObject {
 	glm::mat4 eyeViewMatrix;
 };
 
-struct UniformBufferObjectDynamic {
-	glm::mat4* model = nullptr;
-};
 
 class MainVulkApplication {
 
@@ -187,10 +198,11 @@ private:
 
 	static MainVulkApplication* pinstance_;
 
-	size_t WIDTH = 800;
-	size_t HEIGHT = 600;
+	int WIDTH = 800;
+	int HEIGHT = 600;
 	
 	GLFWwindow* window;
+	ImGui_ImplVulkanH_Window imgui_window;
 
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
@@ -250,14 +262,13 @@ private:
 
 	UniformBufferObject ubo;
 	UniformFragmentObject ufo;
-	UniformBufferObjectDynamic uboDataDynamic;
 
 	std::vector<VkCommandBuffer> commandBuffers;
 
 	std::vector<VkSemaphore> imageAvailableSemaphores;
 	std::vector<VkSemaphore> renderFinishedSemaphores;
 	std::vector<VkFence> inFlightFences;
-	std::vector<VkFence> imagesInFlight;
+	//std::vector<VkFence> imagesInFlight;
 
 	size_t currentFrame = 0;
 	
@@ -298,7 +309,6 @@ private:
 	void createCommandPool();
 	void createDepthResources();
 	void createFramebuffers();
-
 	void createVertexBuffer();
 	void createBuffer(VkDeviceSize, VkBufferUsageFlags,
 		VkMemoryPropertyFlags, VkBuffer&, VkDeviceMemory&);
@@ -306,6 +316,11 @@ private:
 	void createUniformBuffers();
 	void createDescriptorPool();
 	void createDescriptorSets();
+	
+	void createImguiContext();
+	void newFrame(bool updateFrameGraph);
+	void gui_updateBuffers();
+	void drawFrame(VkCommandBuffer commandBuffer);
 
 	void copyBuffer(VkBuffer, VkBuffer, VkDeviceSize);
 	void createCommandBuffers();
@@ -324,7 +339,6 @@ private:
 	void transitionImageLayout(VkImage, VkFormat, VkImageLayout, VkImageLayout);
 	void createTextureImageView();
 	void createTextureSampler();
-
 
 	void initVulkan(std::string appName ) {
 
@@ -347,7 +361,7 @@ private:
 		//createTextureImage();
 		//createTextureImageView();
 		//createTextureSampler();
-
+		createImguiContext();
 		loadModel();
 		createVertexBuffer();
 		createIndexBuffer();
@@ -434,6 +448,7 @@ namespace std {
 	};
 }
 
+#include "VulkanTools.hpp"
 #include "VulkanInstance.hpp"
 #include "VulkanDevice.hpp"
 #include "VulkanWindow.hpp"
@@ -443,5 +458,6 @@ namespace std {
 #include "VulkanSync.hpp"
 #include "VulkanGeometry.hpp"
 #include "VulkanTexture.hpp"
+#include "VulkanImgui.hpp"
 
 #endif

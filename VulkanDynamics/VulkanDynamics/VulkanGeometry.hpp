@@ -10,7 +10,7 @@ namespace VkApplication {
         std::vector<tinyobj::shape_t> shapes;
         std::vector<tinyobj::material_t> materials;
         std::string warn, err;
-
+		int numberOfPoints = 0;
 		/*
 		//DEFAULT
         if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, MODEL_PATH.c_str())) {
@@ -46,11 +46,10 @@ namespace VkApplication {
         }
 		*/
 
-		
 		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, MODEL_PATH.c_str(), 0, true)) {
 			throw std::runtime_error(warn + err);
 		}
-		int numberOfPoints = 0;
+		
 		//FEL LORD
 		for (const auto& shape : shapes) {
 
@@ -79,7 +78,8 @@ namespace VkApplication {
 				indices.push_back(numberOfPoints++);
 			}
 		}
-
+		
+		/*
 		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, GROUND_PATH.c_str(), 0, true)) {
 			throw std::runtime_error(warn + err);
 		}
@@ -112,7 +112,7 @@ namespace VkApplication {
 				indices.push_back(numberOfPoints++);
 			}
 		}
-		
+		*/
 		/*
 		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, VASE_PATH.c_str(), 0, true)) {
 			throw std::runtime_error(warn + err);

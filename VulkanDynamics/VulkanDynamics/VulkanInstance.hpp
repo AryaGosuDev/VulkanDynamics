@@ -35,13 +35,11 @@ namespace VkApplication {
 		else {
 			createInfo.enabledLayerCount = 0; createInfo.pNext = nullptr;
 		}
-		
 
 		if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create instance!");
 		}
 	}
-
 
 	bool checkExtensions() {
 		uint32_t extensions_count = 0;
@@ -64,8 +62,6 @@ namespace VkApplication {
 		
 		return true;
 	}
-
 }
-
 
 #endif
