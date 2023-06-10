@@ -352,7 +352,7 @@ namespace VkApplication {
 			}
 		}
 
-		ImGui::PlotLines("Frame Times", &uiSettings.frameTimes[0], 50, 0, "", uiSettings.frameTimeMin, uiSettings.frameTimeMax, ImVec2(0, 80));
+		//ImGui::PlotLines("Frame Times", &uiSettings.frameTimes[0], 50, 0, "", uiSettings.frameTimeMin, uiSettings.frameTimeMax, ImVec2(0, 80));
 
 		ImGui::Text("Camera");
 		//ImGui::InputFloat3("position", camera.position.x, 2);
@@ -416,6 +416,8 @@ namespace VkApplication {
 			imgui_indexCount = imDrawData->TotalVtxCount;
 			vkMapMemory(device, imgui_indexBufferMemory, 0, indexBufferSize, 0, &data1);
 		}
+
+		if (data1 == NULL || data == NULL) return;
 
 		// Upload data
 		ImDrawVert* vtxDst = (ImDrawVert*)data;
