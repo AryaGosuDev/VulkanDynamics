@@ -153,5 +153,4 @@ namespace VkApplication {
 
 }
 
-
 #endif

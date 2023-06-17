@@ -180,6 +180,7 @@
   <ItemGroup>
     <ClInclude Include="InputHandler.h" />
     <ClInclude Include="ValidationLayers.hpp" />
+    <ClInclude Include="VulkanDescriptor.hpp" />
     <ClInclude Include="VulkanDevice.hpp" />
     <ClInclude Include="VulkanDraw.hpp" />
     <ClInclude Include="VulkanGeometry.hpp" />

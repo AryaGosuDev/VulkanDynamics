@@ -104,22 +104,9 @@ namespace VkApplication {
 		while (!(WindowRes = glfwWindowShouldClose(_app->window))) {
 			glfwPollEvents();
 			updateUniformBuffer(_app);
-
-			// Update imGui
-			ImGuiIO& io = ImGui::GetIO();
-
-			io.DisplaySize = ImVec2((float)_app->WIDTH, (float)_app->HEIGHT);
-			//io.DeltaTime = frameTimer;
-
-			//io.MousePos = ImVec2(mousePos.x, mousePos.y);
-			//io.MouseDown[0] = mouseButtons.left && UIOverlay.visible;
-			//io.MouseDown[1] = mouseButtons.right && UIOverlay.visible;
-			//io.MouseDown[2] = mouseButtons.middle && UIOverlay.visible;
-
+			_app->render_gui();
 			_app->drawFrame();
-			//_app->RenderIMGui();
 		}
-
 		vkDeviceWaitIdle(_app->device);
 	}
 }

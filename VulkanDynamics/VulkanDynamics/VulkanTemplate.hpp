@@ -318,9 +318,8 @@ private:
 	void createDescriptorSets();
 	
 	void createImguiContext();
-	void newFrame(bool updateFrameGraph);
-	void gui_updateBuffers();
-	void drawFrame(VkCommandBuffer commandBuffer);
+	void render_gui();
+	void FrameRender(VkCommandBuffer  &commandBuffer);
 
 	void copyBuffer(VkBuffer, VkBuffer, VkDeviceSize);
 	void createCommandBuffers();
@@ -361,15 +360,17 @@ private:
 		//createTextureImage();
 		//createTextureImageView();
 		//createTextureSampler();
-		createImguiContext();
+		
 		loadModel();
 		createVertexBuffer();
 		createIndexBuffer();
 		createUniformBuffers();
 		createDescriptorPool();
 		createDescriptorSets();
+		createImguiContext();
 		createCommandBuffers();
 		createSyncObjects();
+		
 	}
 
 	void mainLoop() {
@@ -449,6 +450,7 @@ namespace std {
 }
 
 #include "VulkanTools.hpp"
+#include "VulkanDescriptor.hpp"
 #include "VulkanInstance.hpp"
 #include "VulkanDevice.hpp"
 #include "VulkanWindow.hpp"

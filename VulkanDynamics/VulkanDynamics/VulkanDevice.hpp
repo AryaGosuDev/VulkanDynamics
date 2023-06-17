@@ -131,7 +131,6 @@ namespace VkApplication {
 		return requiredExtensions.empty();
 	}
 
-
 	QueueFamilyIndices MainVulkApplication::findQueueFamilies(VkPhysicalDevice device) {
 		QueueFamilyIndices indices;
 

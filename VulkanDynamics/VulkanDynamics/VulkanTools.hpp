@@ -1,11 +1,11 @@
 #ifndef __VK_TOOLS_HPP__
 #define __VK_TOOLS_HPP__
 
-namespace VkApplication {
+namespace VkApplication 
+{
 
 	namespace Initializers
 	{
-
 		inline VkMemoryAllocateInfo memoryAllocateInfo()
 		{
 			VkMemoryAllocateInfo memAllocInfo{};
