@@ -114,7 +114,6 @@ namespace VkApplication {
 		createDescriptorPool();
 		createDescriptorSets();
 		createCommandBuffers();
-
 		//imagesInFlight.resize(swapChainImages.size(), VK_NULL_HANDLE);
 	}
 
@@ -305,6 +304,5 @@ namespace VkApplication {
 		throw std::runtime_error("failed to find suitable memory type!");
 	}
 }
-
 
 #endif

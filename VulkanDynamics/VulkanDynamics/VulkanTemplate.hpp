@@ -72,6 +72,7 @@ namespace VkApplication{
 	const std::string TEXTURE_PATH = "textures/chalet.jpg";
 	const std::string GROUND_PATH = "models/ground.obj";
 	const std::string VASE_PATH = "models/vase.obj";
+	const std::string MIRROR_PATH = "models/mirror.obj";
 
 	const std::vector<const char*> deviceExtensions = {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME
@@ -168,6 +169,7 @@ class MainVulkApplication {
 
 	friend void mainLoop(VkApplication::MainVulkApplication*);
 	friend void updateUniformBuffer(MainVulkApplication*);
+	friend void updateUniformBuffer_reflect(MainVulkApplication*);
 	friend void loadInitialVariables(MainVulkApplication*);
 
 protected:
@@ -198,9 +200,11 @@ private:
 
 	static MainVulkApplication* pinstance_;
 
-	int WIDTH = 800;
-	int HEIGHT = 600;
-	
+	int WIDTH =	1200;
+	int HEIGHT = 1000;
+	float reflectingSurfaceWidth = 1000;
+	float reflectingSurfaceHeight = 1000;
+
 	GLFWwindow* window;
 	ImGui_ImplVulkanH_Window imgui_window;
 
@@ -226,6 +230,8 @@ private:
 	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
 
+	
+
 	VkCommandPool commandPool;
 
 	VkImage depthImage;
@@ -238,12 +244,25 @@ private:
 	VkSampler textureSampler;
 
 	std::vector<Vertex> vertices;
-
 	std::vector<uint32_t> indices;
 	VkBuffer vertexBuffer;
 	VkDeviceMemory vertexBufferMemory;
 	VkBuffer indexBuffer;
 	VkDeviceMemory indexBufferMemory;
+
+	std::vector<Vertex> vertices_ground;
+	std::vector<uint32_t> indices_ground;
+	VkBuffer vertexBuffer_ground;
+	VkDeviceMemory vertexBufferMemory_ground;
+	VkBuffer indexBuffer_ground;
+	VkDeviceMemory indexBufferMemory_ground;
+
+	std::vector<Vertex> vertices_mirror;
+	std::vector<uint32_t> indices_mirror;
+	VkBuffer vertexBuffer_mirror;
+	VkDeviceMemory vertexBufferMemory_mirror;
+	VkBuffer indexBuffer_mirror;
+	VkDeviceMemory indexBufferMemory_mirror;
 
 	size_t dynamicAlignment;
 	size_t bufferDynamicSize;
@@ -262,6 +281,9 @@ private:
 
 	UniformBufferObject ubo;
 	UniformFragmentObject ufo;
+
+	UniformBufferObject ubo_reflect;
+	UniformFragmentObject ufo_reflect;
 
 	std::vector<VkCommandBuffer> commandBuffers;
 
@@ -301,34 +323,45 @@ private:
 
 	void createRenderPass();
 	VkFormat findDepthFormat();
+	VkFormat findReflectFormat();
 	VkFormat findSupportedFormat(const std::vector<VkFormat>&, VkImageTiling, VkFormatFeatureFlags);
 
 	void createDescriptorSetLayout();
 	void createGraphicsPipeline();
+	void createGraphicsPipelineReflect();
+	void createRenderPassReflect();
 	VkShaderModule createShaderModule(const std::vector<char>&);
 	void createCommandPool();
 	void createDepthResources();
+	void createReflectImage();
 	void createFramebuffers();
-	void createVertexBuffer();
+	void createReflectFramebuffer();
 	void createBuffer(VkDeviceSize, VkBufferUsageFlags,
 		VkMemoryPropertyFlags, VkBuffer&, VkDeviceMemory&);
-	void createIndexBuffer();
+	void createGeometryBuffer(std::vector<Vertex>&, VkBuffer&, VkDeviceMemory&);
+	void createIndexBuffer(std::vector<uint32_t>&, VkBuffer&, VkDeviceMemory&);
 	void createUniformBuffers();
+	void createUniformBufferReflect();
 	void createDescriptorPool();
 	void createDescriptorSets();
+	void createDescriptorSetReflect();
 	
 	void createImguiContext();
 	void render_gui();
-	void FrameRender(VkCommandBuffer  &commandBuffer);
+	void drawImgFrame(VkCommandBuffer& );
 
 	void copyBuffer(VkBuffer, VkBuffer, VkDeviceSize);
 	void createCommandBuffers();
+	void createCommandBuffers_Reflect();
 	VkCommandBuffer beginSingleTimeCommands();
 	void endSingleTimeCommands(VkCommandBuffer);
 
 	void createSyncObjects();
+	void createReflectSyncObjects();
 	void drawFrame();
+	void drawFrameReflect();
 	void updateUniformBuffer(uint32_t );
+	void updateUniformBufferReflect();
 	void recreateSwapChain();
 	void cleanupSwapChain();
 
@@ -338,6 +371,7 @@ private:
 	void transitionImageLayout(VkImage, VkFormat, VkImageLayout, VkImageLayout);
 	void createTextureImageView();
 	void createTextureSampler();
+	void transitionImageLayoutReflect();
 
 	void initVulkan(std::string appName ) {
 
@@ -352,25 +386,38 @@ private:
 		createSwapChain();
 		createImageViews();
 		createRenderPass();
+		createRenderPassReflect();
 		createDescriptorSetLayout();
+		
 		createGraphicsPipeline();
+		createGraphicsPipelineReflect();
 		createCommandPool();
 		createDepthResources();
+		createReflectImage();
 		createFramebuffers();
+		createReflectFramebuffer();
+		createCommandBuffers_Reflect();
+
 		//createTextureImage();
 		//createTextureImageView();
 		//createTextureSampler();
 		
 		loadModel();
-		createVertexBuffer();
-		createIndexBuffer();
+		createGeometryBuffer(vertices, vertexBuffer, vertexBufferMemory);
+		createIndexBuffer(indices, indexBuffer, indexBufferMemory);
+		createGeometryBuffer(vertices_ground, vertexBuffer_ground, vertexBufferMemory_ground);
+		createIndexBuffer(indices_ground, indexBuffer_ground, indexBufferMemory_ground);
+		createGeometryBuffer(vertices_mirror, vertexBuffer_mirror, vertexBufferMemory_mirror);
+		createIndexBuffer(indices_mirror, indexBuffer_mirror, indexBufferMemory_mirror);
 		createUniformBuffers();
+		createUniformBufferReflect();
 		createDescriptorPool();
 		createDescriptorSets();
+		createDescriptorSetReflect();
 		createImguiContext();
 		createCommandBuffers();
 		createSyncObjects();
-		
+		createReflectSyncObjects();
 	}
 
 	void mainLoop() {
@@ -449,6 +496,7 @@ namespace std {
 	};
 }
 
+#include "VulkanReflect.hpp"
 #include "VulkanTools.hpp"
 #include "VulkanDescriptor.hpp"
 #include "VulkanInstance.hpp"
@@ -461,5 +509,6 @@ namespace std {
 #include "VulkanGeometry.hpp"
 #include "VulkanTexture.hpp"
 #include "VulkanImgui.hpp"
+
 
 #endif

@@ -166,6 +166,7 @@
     <None Include="shaders\fragmentDynamic.frag">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </None>
+    <None Include="shaders\fragmentDynamicReflection.frag" />
     <None Include="shaders\fragmentDynamicSimple.frag" />
     <None Include="shaders\ui.frag" />
     <None Include="shaders\ui.vert" />
@@ -175,6 +176,7 @@
     <None Include="shaders\vertex.vert">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </None>
+    <None Include="shaders\vertexDynamicReflection.vert" />
     <None Include="shaders\vertexDynamicSimple.vert" />
   </ItemGroup>
   <ItemGroup>
@@ -186,6 +188,7 @@
     <ClInclude Include="VulkanGeometry.hpp" />
     <ClInclude Include="VulkanImgui.hpp" />
     <ClInclude Include="VulkanInstance.hpp" />
+    <ClInclude Include="VulkanReflect.hpp" />
     <ClInclude Include="VulkanRenderSettings.hpp" />
     <ClInclude Include="VulkanSwapchain.hpp" />
     <ClInclude Include="VulkanSync.hpp" />

@@ -75,11 +75,11 @@ void mouse_cursor_callback(GLFWwindow* window, double xpos, double ypos) {
 
 	if (lbutton_down) {
 
-		phi += (xpos - startX);
+		phi += (xpos - startX) / 100.0 ;
 		startX = xpos;
-		theta += (ypos - startY);
+		theta += (ypos - startY) / 100.0 ;
 		startY = ypos;
-		std::cout << phi << std::endl;
+		//std::cout << phi << std::endl;
 	}
 }
  

@@ -39,6 +39,7 @@ namespace VkApplication {
 	} imgui_pushConstBlock;
 
 	void MainVulkApplication::createImguiContext() {
+
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -57,29 +58,41 @@ namespace VkApplication {
 		int texWidth, texHeight;
 		io.Fonts->GetTexDataAsRGBA32(&fontData, &texWidth, &texHeight);
 		VkDeviceSize uploadSize = texWidth * texHeight * 4 * sizeof(char);
-		imgui_window.Surface = surface;
+		//imgui_window.Surface = surface;
 		// Create the Render Pass
 		{
 			SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
 			VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
+
 			VkAttachmentDescription attachment = {};
 			//attachment.format = imgui_window.SurfaceFormat.format;
 			attachment.format = surfaceFormat.format;
 			attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-			//attachment.loadOp = wd->ClearEnable ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-			attachment.loadOp =  VK_ATTACHMENT_LOAD_OP_CLEAR ;
+			attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 			attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 			attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-			attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 			attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
 			VkAttachmentReference color_attachment = {};
 			color_attachment.attachment = 0;
 			color_attachment.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+			VkAttachmentDescription depthAttachment = {};
+			depthAttachment.format = VK_FORMAT_UNDEFINED;
+			depthAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+			VkAttachmentReference depthAttachmentRef = {};
+			depthAttachmentRef.attachment = VK_ATTACHMENT_UNUSED;  // Exclude depth attachment
+			depthAttachmentRef.layout = VK_IMAGE_LAYOUT_UNDEFINED;
+			
 			VkSubpassDescription subpass = {};
 			subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 			subpass.colorAttachmentCount = 1;
 			subpass.pColorAttachments = &color_attachment;
+			subpass.pDepthStencilAttachment = &depthAttachmentRef;
+
 			VkSubpassDependency dependency = {};
 			dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
 			dependency.dstSubpass = 0;
@@ -87,6 +100,7 @@ namespace VkApplication {
 			dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 			dependency.srcAccessMask = 0;
 			dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
 			VkRenderPassCreateInfo info = {};
 			info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 			info.attachmentCount = 1;
@@ -95,12 +109,13 @@ namespace VkApplication {
 			info.pSubpasses = &subpass;
 			info.dependencyCount = 1;
 			info.pDependencies = &dependency;
+
 			check_vk_result(vkCreateRenderPass(device, &info, NULL, &imgui_window.RenderPass));
 			// We do not create a pipeline by default as this is also used by examples' main.cpp,
 			// but secondary viewport in multi-viewport mode may want to create one with:
 			//ImGui_ImplVulkan_CreatePipeline(device, allocator, VK_NULL_HANDLE, wd->RenderPass, VK_SAMPLE_COUNT_1_BIT, &wd->Pipeline, bd->Subpass);
 		}
-
+		 
 		// Setup Platform/Renderer backends
 		ImGui_ImplGlfw_InitForVulkan(window, true);
 		ImGui_ImplVulkan_InitInfo init_info = {};
@@ -150,25 +165,28 @@ namespace VkApplication {
 		}
 	}
 
-	void MainVulkApplication::FrameRender(VkCommandBuffer& commandBuffer) {
-		ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-		// Rendering
-		ImGui_ImplVulkan_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-		ImGui::Render();
-		ImDrawData* draw_data = ImGui::GetDrawData(); draw_data->DisplaySize.x = 100; draw_data->DisplaySize.y = 100;
-		const bool is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);
-		if (!is_minimized) {
-			imgui_window.ClearValue.color.float32[0] = clear_color.x * clear_color.w;
-			imgui_window.ClearValue.color.float32[1] = clear_color.y * clear_color.w;
-			imgui_window.ClearValue.color.float32[2] = clear_color.z * clear_color.w;
-			imgui_window.ClearValue.color.float32[3] = clear_color.w;
-			//FrameRender(&imgui_window, draw_data);
-			//FramePresent(wd);
-		}
-		// Record dear imgui primitives into command buffer
-		ImGui_ImplVulkan_RenderDrawData(draw_data, commandBuffer);
+	void MainVulkApplication::drawImgFrame( VkCommandBuffer & commandBuffer) {
+
+		render_gui();
+
+		VkRenderPassBeginInfo info = {};
+		info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		info.renderPass = imgui_window.RenderPass;
+		info.framebuffer = swapChainFramebuffers[currentFrame];
+		info.renderArea.extent = swapChainExtent;
+		info.clearValueCount = 1;
+
+		std::array<VkClearValue, 1> clearValues{};
+		clearValues[0].color = { 0.01f, 0.01f, 0.01f, 1.0f };
+		info.clearValueCount = static_cast<uint32_t>(clearValues.size());
+		info.pClearValues = clearValues.data();
+
+		vkCmdBeginRenderPass(commandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
+
+		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
+
+		vkCmdEndRenderPass(commandBuffer);
+
 	}
 
 	void MainVulkApplication::render_gui() {
@@ -205,7 +223,7 @@ namespace VkApplication {
 			ImGui::Text("counter = %d", counter);
 
 			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-			ImGui::End();
+			//ImGui::End();
 		}
 
 		// 3. Show another simple window.
@@ -215,11 +233,12 @@ namespace VkApplication {
 			ImGui::Text("Hello from another window!");
 			if (ImGui::Button("Close Me"))
 				show_another_window = false;
-			ImGui::End();
+			//ImGui::End();
 		}
-
+		ImGui::End();
 		// Rendering
 		ImGui::Render();
+		/*
 		ImDrawData* draw_data = ImGui::GetDrawData(); draw_data->DisplaySize.x = 100; draw_data->DisplaySize.y = 100;
 		const bool is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);
 		if (!is_minimized) {
@@ -227,9 +246,10 @@ namespace VkApplication {
 			imgui_window.ClearValue.color.float32[1] = clear_color.y * clear_color.w;
 			imgui_window.ClearValue.color.float32[2] = clear_color.z * clear_color.w;
 			imgui_window.ClearValue.color.float32[3] = clear_color.w;
-			//FrameRender(wd, draw_data);
-			//FramePresent(wd);
+			
 		}
+		*/
+
 	}
 	
 	// TODO : Destroy imgui and pool

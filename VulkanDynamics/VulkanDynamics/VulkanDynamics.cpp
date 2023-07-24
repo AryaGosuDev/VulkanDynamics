@@ -51,7 +51,7 @@ namespace VkApplication {
 		_app->ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 		_app->ubo.view = glm::lookAt(mainEyeLoc, centerLoc, up);
 		copyView = _app->ubo.view;
-		_app->ubo.proj = glm::perspective(fov, _app->swapChainExtent.width / (float)_app->swapChainExtent.height, 0.1f, 9.0f);
+		_app->ubo.proj = glm::perspective(fov, _app->swapChainExtent.width / (float)_app->swapChainExtent.height, 0.1f, 20.0f);
 		_app->ubo.proj[1][1] *= -1.0f;
 		glm::mat3 viewMatrix3x3(_app->ubo.view * _app->ubo.model);
 		_app->ubo.normalMatrix = glm::inverseTranspose(viewMatrix3x3);
@@ -67,16 +67,38 @@ namespace VkApplication {
 		_app->ufo.QuadraticAttenuation = QuadraticAttenuation;
 		_app->ufo.viewMatrix = glm::inverseTranspose(viewMatrix3x3);;
 		_app->ufo.eyeViewMatrix = glm::inverseTranspose(viewMatrix3x3);
+
+		_app->ubo_reflect.model = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		_app->ubo_reflect.view = glm::lookAt(mainEyeLoc, centerLoc, up);
+		copyView = _app->ubo.view;
+		_app->ubo_reflect.proj = glm::perspective(fov, _app->swapChainExtent.width / (float)_app->swapChainExtent.height, 0.1f, 20.0f);
+		_app->ubo_reflect.proj[1][1] *= -1.0f;
+		viewMatrix3x3 = (_app->ubo.view * _app->ubo.model);
+		_app->ubo_reflect.normalMatrix = glm::inverseTranspose(viewMatrix3x3);
+		_app->ubo_reflect.lightPos = LightPosition;
+
+		_app->ufo_reflect.Ambient = ambientLight;
+		_app->ufo_reflect.LightColor = lightColor;
+		_app->ufo_reflect.Reflectivity = Shininess;
+		_app->ufo_reflect.Strength = Strength;
+		_app->ufo_reflect.EyeDirection = glm::vec4(mainEyeLoc, 1.0f);
+		_app->ufo_reflect.ConstantAttenuation = ConstantAttenuation;
+		_app->ufo_reflect.LinearAttenuation = LinearAttenuation;
+		_app->ufo_reflect.QuadraticAttenuation = QuadraticAttenuation;
+		_app->ufo_reflect.viewMatrix = glm::inverseTranspose(viewMatrix3x3);;
+		_app->ufo_reflect.eyeViewMatrix = glm::inverseTranspose(viewMatrix3x3);
 	}
 
 	void updateUniformBuffer(VkApplication::MainVulkApplication* _app) {
 		if (motionFlying == true) {
-			spindleAxis = glm::cross(mainEyeLoc, up);
-			//spindleAxis = glm::rotateY(spindleAxis, glm::radians((float)((phi / 180.0f) * glm::pi<float>())));
-			//spindleAxis = glm::rotate(spindleAxis, glm::radians((float)((phi / 180.0f) * glm::pi<float>())), glm::vec3(0.0f, 1.0f, 0.0f));
-			
-			_app->ubo.view = copyView * glm::rotate(glm::mat4(1.0f), glm::radians((float)((theta / 180.0f) * glm::pi<float>())), spindleAxis);
-			_app->ubo.view *= glm::rotate(glm::mat4(1.0f), glm::radians((float)((phi / 180.0f) * glm::pi<float>())), up); 
+			//spindleAxis = glm::cross(mainEyeLoc, up);
+			//_app->ubo.view = copyView * glm::rotate(glm::mat4(1.0f), glm::radians((float)((theta / 180.0f) * glm::pi<float>())), spindleAxis);
+			//_app->ubo.view *= glm::rotate(glm::mat4(1.0f), glm::radians((float)((phi / 180.0f) * glm::pi<float>())), up); 
+
+			mainEyeLoc.x = 6.0f * sin(theta) * cos(phi);
+			mainEyeLoc.y = 6.0f * cos(theta);
+			mainEyeLoc.z = 6.0f * sin(theta) * sin(phi);
+			_app->ubo.view = glm::lookAt(mainEyeLoc, centerLoc, up);
 		}
 		
 		if (changeLightPos[0] == 1) {
@@ -93,6 +115,22 @@ namespace VkApplication {
 		}
 	}
 
+	void updateUniformBuffer_reflect(VkApplication::MainVulkApplication* _app) {
+		
+		float planeDistance = 5.0f;  // the plane's distance from the origin along the normal
+		glm::vec3 v1(5.0, -1.0, -5.0); glm::vec3 v2(5.0, -1.0, 5.0); glm::vec3 v3(5.0, 2.0, -5.0);
+
+		glm::vec3 planeNormal( glm::cross ( v2 - v1, v3 - v1  )); // the plane's normal vector
+		planeNormal = glm::normalize(planeNormal);
+
+		// compute the reflection of cameraPos and lookAt across the plane
+		glm::vec3 reflectedCameraPos = mainEyeLoc - 2.0f * (glm::dot(mainEyeLoc, planeNormal) + planeDistance) * planeNormal;
+		glm::vec3 reflectedLookAt = centerLoc - 2.0f * (glm::dot(centerLoc, planeNormal) + planeDistance) * planeNormal;
+
+		// compute the reflected view matrix
+		_app->ubo_reflect.view = glm::lookAt(reflectedCameraPos, reflectedLookAt, glm::vec3(0.0f, 1.0f, 0.0f));;
+	}
+
 	void mainLoop(VkApplication::MainVulkApplication* _app) {
 
 		glfwSetKeyCallback(_app->window, readInput_callback);
@@ -104,8 +142,10 @@ namespace VkApplication {
 		while (!(WindowRes = glfwWindowShouldClose(_app->window))) {
 			glfwPollEvents();
 			updateUniformBuffer(_app);
-			_app->render_gui();
-			_app->drawFrame();
+			updateUniformBuffer_reflect(_app);
+			_app->transitionImageLayoutReflect();
+			_app->drawFrameReflect();
+			//_app->drawFrame();
 		}
 		vkDeviceWaitIdle(_app->device);
 	}

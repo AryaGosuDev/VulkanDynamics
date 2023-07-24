@@ -23,6 +23,8 @@
     <None Include="shaders\vertexDynamicSimple.vert" />
     <None Include="shaders\ui.frag" />
     <None Include="shaders\ui.vert" />
+    <None Include="shaders\fragmentDynamicReflection.frag" />
+    <None Include="shaders\vertexDynamicReflection.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="InputHandler.h">
@@ -68,6 +70,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VulkanDescriptor.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanReflect.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

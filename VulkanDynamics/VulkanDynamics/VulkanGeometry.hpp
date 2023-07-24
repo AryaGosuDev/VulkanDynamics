@@ -79,7 +79,7 @@ namespace VkApplication {
 			}
 		}
 		
-		/*
+		numberOfPoints = 0;
 		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, GROUND_PATH.c_str(), 0, true)) {
 			throw std::runtime_error(warn + err);
 		}
@@ -103,16 +103,52 @@ namespace VkApplication {
 
 				v1.vertexNormal = v2.vertexNormal = v3.vertexNormal = triNormal;
 
-				vertices.push_back(v1);
-				vertices.push_back(v2);
-				vertices.push_back(v3);
+				vertices_ground.push_back(v1);
+				vertices_ground.push_back(v2);
+				vertices_ground.push_back(v3);
 
-				indices.push_back(numberOfPoints++);
-				indices.push_back(numberOfPoints++);
-				indices.push_back(numberOfPoints++);
+				indices_ground.push_back(numberOfPoints++);
+				indices_ground.push_back(numberOfPoints++);
+				indices_ground.push_back(numberOfPoints++);
 			}
 		}
-		*/
+
+		numberOfPoints = 0;
+		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, MIRROR_PATH.c_str(), 0, true)) {
+			throw std::runtime_error(warn + err);
+		}
+
+		//MIRROR
+		for (const auto& shape : shapes) {
+
+			for (int i = 0; i < shape.mesh.indices.size(); i += 3) {
+
+				Vertex v1, v2, v3;
+
+				v1.pos = { attrib.vertices[3 * shape.mesh.indices[i].vertex_index + 0], attrib.vertices[3 * shape.mesh.indices[i].vertex_index + 1], attrib.vertices[3 * shape.mesh.indices[i].vertex_index + 2] };
+				v2.pos = { attrib.vertices[3 * shape.mesh.indices[i + 1].vertex_index + 0], attrib.vertices[3 * shape.mesh.indices[i + 1].vertex_index + 1], attrib.vertices[3 * shape.mesh.indices[i + 1].vertex_index + 2] };
+				v3.pos = { attrib.vertices[3 * shape.mesh.indices[i + 2].vertex_index + 0], attrib.vertices[3 * shape.mesh.indices[i + 2].vertex_index + 1], attrib.vertices[3 * shape.mesh.indices[i + 2].vertex_index + 2] };
+
+				v1.color = { 1.0f, 1.0f, 1.0f };
+				v2.color = { 1.0f, 1.0f, 1.0f };
+				v3.color = { 1.0f, 1.0f, 1.0f };
+
+				glm::vec3 triNormal = glm::normalize(glm::cross((v2.pos - v1.pos), (v3.pos - v1.pos)));
+
+				v1.vertexNormal = v2.vertexNormal = v3.vertexNormal = triNormal;
+
+				vertices_mirror.push_back(v1);
+				vertices_mirror.push_back(v2);
+				vertices_mirror.push_back(v3);
+
+				indices_mirror.push_back(numberOfPoints++);
+				indices_mirror.push_back(numberOfPoints++);
+				indices_mirror.push_back(numberOfPoints++);
+			}
+		}
+
+
+		
 		/*
 		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, VASE_PATH.c_str(), 0, true)) {
 			throw std::runtime_error(warn + err);
