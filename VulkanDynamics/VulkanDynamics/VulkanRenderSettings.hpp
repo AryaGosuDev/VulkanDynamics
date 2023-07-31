@@ -62,36 +62,25 @@ namespace VkApplication {
         }
     }
 
+    // command : $ glslangValidator - V fragmentDynamicReflection.frag - o fragReflect.spv
     void MainVulkApplication::createGraphicsPipeline() {
-        auto vertShaderCode = readFile("shaders/vert.spv");
-        auto fragShaderCode = readFile("shaders/frag.spv");
-
-        VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
-        VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
-
-        VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
-        vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-        vertShaderStageInfo.module = vertShaderModule;
-        vertShaderStageInfo.pName = "main";
-
-        VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
-        fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-        fragShaderStageInfo.module = fragShaderModule;
-        fragShaderStageInfo.pName = "main";
-
-        VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
-
+        
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
-        auto bindingDescription = Vertex::getBindingDescription();
-        auto attributeDescriptions = Vertex::getAttributeDescriptions();
+        //auto bindingDescription = Vertex::getBindingDescription();
+        //auto attributeDescriptions = Vertex::getAttributeDescriptions();
+        std::vector<VkVertexInputBindingDescription> bindingDescriptions;
+        std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
 
-        vertexInputInfo.vertexBindingDescriptionCount = 1;
+        // Vertex input bindings
+        // The instancing pipeline uses a vertex input state with two bindings
+        bindingDescriptions = { Vertex::getBindingDescription(), InstanceData::getBindingDescription() };
+        attributeDescriptions = { Vertex::getAttributeDescriptions().data() , InstanceData::getAttributeDescriptions().data() };
+
+        vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
         vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-        vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+        vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
         vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
         VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
@@ -165,10 +154,30 @@ namespace VkApplication {
             throw std::runtime_error("failed to create pipeline layout!");
         }
 
+        std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages;
+
+        auto vertShaderCode = readFile("shaders/vertCube.spv");
+        auto fragShaderCode = readFile("shaders/fragCube.spv");
+
+        VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
+        VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
+
+        VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
+        vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+        vertShaderStageInfo.module = vertShaderModule;
+        vertShaderStageInfo.pName = "main";
+
+        VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
+        fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        fragShaderStageInfo.module = fragShaderModule;
+        fragShaderStageInfo.pName = "main";
+
         VkGraphicsPipelineCreateInfo pipelineInfo{};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-        pipelineInfo.stageCount = 2;
-        pipelineInfo.pStages = shaderStages;
+        pipelineInfo.stageCount = shaderStages.size();
+        pipelineInfo.pStages = shaderStages.data();
         pipelineInfo.pVertexInputState = &vertexInputInfo;
         pipelineInfo.pInputAssemblyState = &inputAssembly;
         pipelineInfo.pViewportState = &viewportState;
@@ -181,8 +190,36 @@ namespace VkApplication {
         pipelineInfo.subpass = 0;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-        if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) 
+        shaderStages[0] = vertShaderStageInfo;
+        shaderStages[1] = fragShaderStageInfo;
+
+        //cube pipeline
+        if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipelines.cube) != VK_SUCCESS)
             throw std::runtime_error("failed to create graphics pipeline!");
+
+        vertShaderCode = readFile("shaders/vertGround.spv");
+        fragShaderCode = readFile("shaders/fragGround.spv");
+
+        vertShaderModule = createShaderModule(vertShaderCode);
+        fragShaderModule = createShaderModule(fragShaderCode);
+
+        vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+        vertShaderStageInfo.module = vertShaderModule;
+        vertShaderStageInfo.pName = "main";
+
+        fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        fragShaderStageInfo.module = fragShaderModule;
+        fragShaderStageInfo.pName = "main";
+
+        // ground pipeline
+        shaderStages[0] = vertShaderStageInfo;
+        shaderStages[1] = fragShaderStageInfo;
+        // Only use the non-instanced input bindings and attribute descriptions
+        vertexInputInfo.vertexBindingDescriptionCount = 1;
+        vertexInputInfo.vertexAttributeDescriptionCount = 4;
+        check_vk_result(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipelines.ground));
         
         vkDestroyShaderModule(device, fragShaderModule, nullptr);
         vkDestroyShaderModule(device, vertShaderModule, nullptr);

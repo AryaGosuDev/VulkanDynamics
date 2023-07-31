@@ -65,6 +65,7 @@ namespace VkApplication{
 	constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 	//const int numberOfSpheres = 481;
 	const int numberOfSpheres = 1;
+	const int INSTANCE_COUNT_CUBE = 64;
 
 	//const std::string MODEL_PATH = "models/chalet.obj";
 	const std::string MODEL_PATH = "models/FelModelReal.obj";
@@ -73,6 +74,7 @@ namespace VkApplication{
 	const std::string GROUND_PATH = "models/ground.obj";
 	const std::string VASE_PATH = "models/vase.obj";
 	const std::string MIRROR_PATH = "models/mirror.obj";
+	const std::string SIMPLESP_LOW = "models/singleSLow.obj";
 
 	const std::vector<const char*> deviceExtensions = {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME
@@ -133,6 +135,48 @@ struct Vertex {
 	}
 };
 
+
+// Per-instance data block
+struct InstanceData {
+	glm::vec3 pos;
+	glm::vec3 rot;
+	uint32_t texIndex;
+
+	static VkVertexInputBindingDescription getBindingDescription() {
+		VkVertexInputBindingDescription bindingDescription = {};
+		bindingDescription.binding = 1;
+		bindingDescription.stride = sizeof(InstanceData);
+		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
+
+		return bindingDescription;
+	}
+
+	static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
+		std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions = {};
+
+		attributeDescriptions[0].binding = 1;
+		attributeDescriptions[0].location = 3;
+		attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescriptions[0].offset = offsetof(InstanceData, pos);
+
+		attributeDescriptions[1].binding = 1;
+		attributeDescriptions[1].location = 4;
+		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescriptions[1].offset = offsetof(InstanceData, rot);
+
+		attributeDescriptions[2].binding = 1;
+		attributeDescriptions[2].location = 5;
+		attributeDescriptions[2].format = VK_FORMAT_R32_SINT;
+		attributeDescriptions[2].offset = offsetof(InstanceData, texIndex);
+
+		return attributeDescriptions;
+	}
+
+	bool operator==(const InstanceData& other) const {
+		return pos == other.pos && rot == other.rot && texIndex == other.texIndex;
+	}
+};
+
 /*
 namespace std {
 	template<> struct hash<VkApplication::Vertex> {
@@ -164,6 +208,10 @@ struct UniformFragmentObject {
 	glm::mat4 eyeViewMatrix;
 };
 
+struct {
+	VkPipeline ground;
+	VkPipeline cube;
+} pipelines;
 
 class MainVulkApplication {
 
@@ -229,8 +277,6 @@ private:
 	VkDescriptorSetLayout descriptorSetLayout;
 	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
-
-	
 
 	VkCommandPool commandPool;
 
@@ -373,10 +419,13 @@ private:
 	void createTextureSampler();
 	void transitionImageLayoutReflect();
 
+	void prepareInstanceDataCube();
+	void createCommandBuffersCube();
+	void drawFrameCube();
+
 	void initVulkan(std::string appName ) {
 
 		createInstance(appName);
-
 		setupDebugMessenger();
 
 		createSurface();
@@ -386,18 +435,12 @@ private:
 		createSwapChain();
 		createImageViews();
 		createRenderPass();
-		createRenderPassReflect();
 		createDescriptorSetLayout();
-		
 		createGraphicsPipeline();
-		createGraphicsPipelineReflect();
 		createCommandPool();
 		createDepthResources();
-		createReflectImage();
 		createFramebuffers();
-		createReflectFramebuffer();
-		createCommandBuffers_Reflect();
-
+		
 		//createTextureImage();
 		//createTextureImageView();
 		//createTextureSampler();
@@ -410,14 +453,27 @@ private:
 		createGeometryBuffer(vertices_mirror, vertexBuffer_mirror, vertexBufferMemory_mirror);
 		createIndexBuffer(indices_mirror, indexBuffer_mirror, indexBufferMemory_mirror);
 		createUniformBuffers();
-		createUniformBufferReflect();
 		createDescriptorPool();
 		createDescriptorSets();
-		createDescriptorSetReflect();
 		createImguiContext();
 		createCommandBuffers();
 		createSyncObjects();
+		
+		//Reflect
+		/*
+		createRenderPassReflect();
+		createGraphicsPipelineReflect();
+		createReflectImage();
+		createReflectFramebuffer();
+		createCommandBuffers_Reflect();
+		createUniformBufferReflect();
+		createDescriptorSetReflect();
 		createReflectSyncObjects();
+		*/
+
+		//Cube Scene
+
+
 	}
 
 	void mainLoop() {
@@ -496,8 +552,8 @@ namespace std {
 	};
 }
 
-#include "VulkanReflect.hpp"
 #include "VulkanTools.hpp"
+#include "VulkanReflect.hpp"
 #include "VulkanDescriptor.hpp"
 #include "VulkanInstance.hpp"
 #include "VulkanDevice.hpp"
@@ -509,6 +565,6 @@ namespace std {
 #include "VulkanGeometry.hpp"
 #include "VulkanTexture.hpp"
 #include "VulkanImgui.hpp"
-
+#include "VulkanSceneCube.hpp"
 
 #endif

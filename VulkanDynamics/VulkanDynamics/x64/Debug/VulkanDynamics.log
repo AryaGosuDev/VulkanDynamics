@@ -3,6 +3,7 @@ C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanR
 C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanReflect.hpp(441,21): warning C4244: 'argument': conversion from 'float' to 'uint32_t', possible loss of data
 C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanReflect.hpp(465,33): warning C4244: '=': conversion from 'float' to 'uint32_t', possible loss of data
 C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanReflect.hpp(466,34): warning C4244: '=': conversion from 'float' to 'uint32_t', possible loss of data
+C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanRenderSettings.hpp(179,54): warning C4267: '=': conversion from 'size_t' to 'uint32_t', possible loss of data
 C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanDynamics.cpp(98,37): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
           with
           [

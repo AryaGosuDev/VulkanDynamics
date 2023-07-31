@@ -3,7 +3,6 @@
 
 namespace VkApplication 
 {
-
 	namespace Initializers
 	{
 		inline VkMemoryAllocateInfo memoryAllocateInfo()

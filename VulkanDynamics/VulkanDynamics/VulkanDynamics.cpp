@@ -143,9 +143,9 @@ namespace VkApplication {
 			glfwPollEvents();
 			updateUniformBuffer(_app);
 			updateUniformBuffer_reflect(_app);
-			_app->transitionImageLayoutReflect();
-			_app->drawFrameReflect();
-			//_app->drawFrame();
+			//_app->transitionImageLayoutReflect();
+			//_app->drawFrameReflect();
+			_app->drawFrame();
 		}
 		vkDeviceWaitIdle(_app->device);
 	}

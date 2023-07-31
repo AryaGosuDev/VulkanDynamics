@@ -12,6 +12,11 @@ layout (location = 0 ) in vec3 color;
 layout (location = 1 ) in vec3 VertexNormal;
 layout (location = 2 ) in vec3 position;
 
+// Instanced attributes
+layout (location = 3) in vec3 instancePos;
+layout (location = 4) in vec3 instanceRot;
+layout (location = 5) in int instanceTexIndex;
+
 layout (location = 0 ) out vec3 fragColor;
 layout (location = 1 ) out vec3 Normal;
 layout (location = 2 ) out vec4 Position; // adding position, so we know where we are

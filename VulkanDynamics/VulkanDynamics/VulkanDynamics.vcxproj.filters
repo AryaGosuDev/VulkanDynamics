@@ -25,6 +25,8 @@
     <None Include="shaders\ui.vert" />
     <None Include="shaders\fragmentDynamicReflection.frag" />
     <None Include="shaders\vertexDynamicReflection.vert" />
+    <None Include="shaders\fragmentGround.frag" />
+    <None Include="shaders\vertexGround.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="InputHandler.h">
@@ -73,6 +75,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VulkanReflect.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanSceneCube.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanSceneDrop.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanSceneSpring.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanSceneArmKinematics.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -168,6 +168,7 @@
     </None>
     <None Include="shaders\fragmentDynamicReflection.frag" />
     <None Include="shaders\fragmentDynamicSimple.frag" />
+    <None Include="shaders\fragmentGround.frag" />
     <None Include="shaders\ui.frag" />
     <None Include="shaders\ui.vert" />
     <None Include="shaders\vertexDynamic.vert">
@@ -178,6 +179,7 @@
     </None>
     <None Include="shaders\vertexDynamicReflection.vert" />
     <None Include="shaders\vertexDynamicSimple.vert" />
+    <None Include="shaders\vertexGround.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="InputHandler.h" />
@@ -190,6 +192,10 @@
     <ClInclude Include="VulkanInstance.hpp" />
     <ClInclude Include="VulkanReflect.hpp" />
     <ClInclude Include="VulkanRenderSettings.hpp" />
+    <ClInclude Include="VulkanSceneArmKinematics.hpp" />
+    <ClInclude Include="VulkanSceneCube.hpp" />
+    <ClInclude Include="VulkanSceneDrop.hpp" />
+    <ClInclude Include="VulkanSceneSpring.hpp" />
     <ClInclude Include="VulkanSwapchain.hpp" />
     <ClInclude Include="VulkanSync.hpp" />
     <ClInclude Include="VulkanTemplate.hpp" />

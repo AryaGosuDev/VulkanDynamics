@@ -9,7 +9,6 @@ namespace VkApplication {
         uint32_t imageIndex;
         VkResult result = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, 
             imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
-        //std::cout << "imageI : " << imageIndex  << std::endl;
         if (result == VK_ERROR_OUT_OF_DATE_KHR) {
             recreateSwapChain();
             return;
@@ -19,18 +18,9 @@ namespace VkApplication {
         }
 
         updateUniformBuffer(imageIndex);
-        
-        /*
-        if (imagesInFlight[imageIndex] != VK_NULL_HANDLE) {
-            vkWaitForFences(device, 1, &imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
-        }
-        imagesInFlight[imageIndex] = inFlightFences[currentFrame];
-        /
-        */
 
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        //beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
 
         if (vkBeginCommandBuffer(commandBuffers[imageIndex], &beginInfo) != VK_SUCCESS)
             throw std::runtime_error("failed to begin recording command buffer!");
@@ -78,7 +68,7 @@ namespace VkApplication {
         vkCmdDrawIndexed(commandBuffers[imageIndex], static_cast<uint32_t>(indices_mirror.size()), 1, 0, 0, 0);
 
         vkCmdEndRenderPass(commandBuffers[imageIndex]);
-        /*
+       
         render_gui();
 
         VkRenderPassBeginInfo info = {};
@@ -88,8 +78,9 @@ namespace VkApplication {
         info.renderArea.extent = swapChainExtent;
         info.clearValueCount = 1;
 
-        std::array<VkClearValue, 1> clearValuesGui{};
+        std::array<VkClearValue, 2> clearValuesGui{};
         clearValuesGui[0].color = { 0.01f, 0.01f, 0.01f, 1.0f };
+        clearValuesGui[1].depthStencil = { 1.0f, 0 };
         info.clearValueCount = static_cast<uint32_t>(clearValuesGui.size());
         info.pClearValues = clearValuesGui.data();
 
@@ -98,11 +89,6 @@ namespace VkApplication {
         ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffers[imageIndex]);
 
         vkCmdEndRenderPass(commandBuffers[imageIndex]);
-        */
-        
-        //render_gui();
-        //ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffers[imageIndex]);
-        //ImGui_ImplVulkan_RenderDrawData_Mini(ImGui::GetDrawData(), commandBuffers[imageIndex]);
 
         if (vkEndCommandBuffer(commandBuffers[imageIndex]) != VK_SUCCESS) {
             throw std::runtime_error("failed to record command buffer!");

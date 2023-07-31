@@ -3,7 +3,6 @@
 
 namespace VkApplication {
 
-
     void MainVulkApplication::createDescriptorSetLayout() {
         VkDescriptorSetLayoutBinding uboLayoutBinding{};
         uboLayoutBinding.binding = 0;

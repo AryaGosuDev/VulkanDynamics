@@ -64,28 +64,41 @@ namespace VkApplication {
 			SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
 			VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
 
-			VkAttachmentDescription attachment = {};
+			VkAttachmentDescription colorattachment = {};
 			//attachment.format = imgui_window.SurfaceFormat.format;
-			attachment.format = surfaceFormat.format;
-			attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-			attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-			attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-			attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-			attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-			attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-			attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+			colorattachment.format = surfaceFormat.format;
+			colorattachment.samples = VK_SAMPLE_COUNT_1_BIT;
+			colorattachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			colorattachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+			colorattachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			colorattachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			//colorattachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			colorattachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			colorattachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
 			VkAttachmentReference color_attachment = {};
 			color_attachment.attachment = 0;
 			color_attachment.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+			/*
 			VkAttachmentDescription depthAttachment = {};
 			depthAttachment.format = VK_FORMAT_UNDEFINED;
 			depthAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			*/
+			VkAttachmentDescription depthAttachment{};
+			depthAttachment.format = findDepthFormat();
+			depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+			depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 			VkAttachmentReference depthAttachmentRef = {};
-			depthAttachmentRef.attachment = VK_ATTACHMENT_UNUSED;  // Exclude depth attachment
-			depthAttachmentRef.layout = VK_IMAGE_LAYOUT_UNDEFINED;
+			//depthAttachmentRef.attachment = VK_ATTACHMENT_UNUSED;  // Exclude depth attachment
+			depthAttachmentRef.attachment = 1;
+			depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 			
 			VkSubpassDescription subpass = {};
 			subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -101,10 +114,11 @@ namespace VkApplication {
 			dependency.srcAccessMask = 0;
 			dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
+			std::array<VkAttachmentDescription, 2> attachments = { colorattachment, depthAttachment };
 			VkRenderPassCreateInfo info = {};
 			info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-			info.attachmentCount = 1;
-			info.pAttachments = &attachment;
+			info.attachmentCount = 2;
+			info.pAttachments = attachments.data();
 			info.subpassCount = 1;
 			info.pSubpasses = &subpass;
 			info.dependencyCount = 1;
