@@ -2,9 +2,10 @@
 #define __VK_SCENECUBE_HPP__
 
 namespace VkApplication {
-    const int CUBE_W = 10;
-    const int CUBE_H = 10;
-    const int CUBE_L = 10;
+    const int CUBE_W = 3;
+    const int CUBE_H = 3;
+    const int CUBE_L = 3;
+    glm::vec3 centerOfCube(0.0, 1.0, 0.0);
 
     // Contains the instanced data
     struct InstanceBuffer {
@@ -35,8 +36,7 @@ namespace VkApplication {
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
-        if (vkBeginCommandBuffer(commandBuffersCube[imageIndex], &beginInfo) != VK_SUCCESS)
-            throw std::runtime_error("failed to begin recording command buffer!");
+        check_vk_result(vkBeginCommandBuffer(commandBuffersCube[imageIndex], &beginInfo));
 
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -54,7 +54,7 @@ namespace VkApplication {
         renderPassInfo.pClearValues = clearValues.data();
 
         vkCmdBeginRenderPass(commandBuffersCube[imageIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-        vkCmdBindPipeline(commandBuffersCube[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+        vkCmdBindPipeline(commandBuffersCube[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.cube);
 
         VkBuffer vertexBuffers[] = { vertexBuffer };
         VkDeviceSize offsets[] = { 0 };
@@ -65,9 +65,12 @@ namespace VkApplication {
         //sphere mesh
         vkCmdBindVertexBuffers(commandBuffersCube[imageIndex], 0, 1, vertexBuffers, offsets);
         //instance data
-        vkCmdBindVertexBuffers(commandBuffersCube[imageIndex], 1, 1, &instanceBufferCube.buffer, offsets);
+        vertexBuffers[0] = { instanceBufferCube.buffer };
+        vkCmdBindVertexBuffers(commandBuffersCube[imageIndex], 1, 1, vertexBuffers, offsets);
         // Bind index buffer
         vkCmdBindIndexBuffer(commandBuffersCube[imageIndex], indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+        // Render instances
+        vkCmdDrawIndexed(commandBuffersCube[imageIndex], static_cast<uint32_t>(indices.size()), SPHERE_INSTANCE_COUNT_CUBE, 0, 0, 0);
 
         //draw ground
         vertexBuffers[0] = { vertexBuffer_ground };
@@ -133,7 +136,7 @@ namespace VkApplication {
         submitInfo.pSignalSemaphores = signalSemaphores;
 
         check_vk_result(vkResetFences(device, 1, &inFlightFences[currentFrame]));
-
+         
         VkResult returnThis = vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]);
         if (returnThis != VK_SUCCESS) {
             throw std::runtime_error("failed to submit draw command buffer! " + std::to_string(returnThis));
@@ -174,33 +177,33 @@ namespace VkApplication {
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo.commandPool = commandPool;
         allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandBufferCount = (uint32_t)commandBuffers.size();
+        allocInfo.commandBufferCount = (uint32_t)commandBuffersCube.size();
 
-        if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS)
+        if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffersCube.data()) != VK_SUCCESS)
             throw std::runtime_error("failed to allocate command buffers!");
     }
 
     void MainVulkApplication::prepareInstanceDataCube() {
         std::vector<InstanceData> instanceData;
-        instanceData.resize(INSTANCE_COUNT_CUBE);
-        int row_x = 0;
-        glm::vec3 centerOfCube(0.0, 2.0, 0.0);
+        instanceData.resize(SPHERE_INSTANCE_COUNT_CUBE);
+        
         double x_step = (double)CUBE_L / 4.0;
         double y_step = (double)CUBE_H / 4.0;
         double z_step = (double)CUBE_W / 4.0;
-        double x_pos = centerOfCube.x - ((double)CUBE_L / 2.0);
+        
        
         // Distribute spheres in cube evenly
         for (auto i = 0; i < 4; i++) {
+            double x_pos = centerOfCube.x - ((double)CUBE_L / 2.0);
             x_pos += x_step * (double)i;
-            double y_pos = centerOfCube.x - ((double)CUBE_H / 2.0);
             for (auto j = 0; j < 4; ++j) {
+                double y_pos = centerOfCube.y - ((double)CUBE_H / 2.0);
                 y_pos += y_step * (double)j;
-                double z_pos = centerOfCube.x - ((double)CUBE_W / 2.0);
                 for (auto k = 0; k < 4; ++k) {
+                    double z_pos = centerOfCube.z - ((double)CUBE_W / 2.0);
                     z_pos += z_step * (double)k;
                     int indx = (i * 16) + (j * 4) + (k);
-                    instanceData[indx].pos = glm::vec3(x_pos, y_step, z_pos);
+                    instanceData[indx].pos = glm::vec3(x_pos, y_pos, z_pos);
                     instanceData[indx].rot = glm::vec3(1.0, 1.0, 1.0);
                     instanceData[indx].texIndex = 1;
                 }

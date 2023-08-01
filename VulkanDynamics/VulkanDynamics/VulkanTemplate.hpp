@@ -65,7 +65,7 @@ namespace VkApplication{
 	constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 	//const int numberOfSpheres = 481;
 	const int numberOfSpheres = 1;
-	const int INSTANCE_COUNT_CUBE = 64;
+	const int SPHERE_INSTANCE_COUNT_CUBE = 64;
 
 	//const std::string MODEL_PATH = "models/chalet.obj";
 	const std::string MODEL_PATH = "models/FelModelReal.obj";
@@ -134,7 +134,6 @@ struct Vertex {
 		return pos == other.pos && color == other.color && vertexNormal == other.vertexNormal;
 	}
 };
-
 
 // Per-instance data block
 struct InstanceData {
@@ -234,10 +233,6 @@ public:
 	void setup(std::string appName = "Vulkan Dynamics") {
 		initWindow();
 		initVulkan(appName);
-	}
-
-	void run() {
-		mainLoop();
 	}
 
 	void cleanupApp() {
@@ -472,10 +467,10 @@ private:
 		*/
 
 		//Cube Scene
-
-
+		createCommandBuffersCube();
+		prepareInstanceDataCube();
 	}
-
+	/*
 	void mainLoop() {
 		while (!glfwWindowShouldClose(window)) {
 			glfwPollEvents();
@@ -484,6 +479,7 @@ private:
 
 		vkDeviceWaitIdle(device);
 	}
+	*/
 
 	void cleanup() {
 		cleanupSwapChain();

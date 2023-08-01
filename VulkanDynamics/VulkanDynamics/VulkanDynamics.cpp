@@ -145,7 +145,8 @@ namespace VkApplication {
 			updateUniformBuffer_reflect(_app);
 			//_app->transitionImageLayoutReflect();
 			//_app->drawFrameReflect();
-			_app->drawFrame();
+			//_app->drawFrame();
+			_app->drawFrameCube();
 		}
 		vkDeviceWaitIdle(_app->device);
 	}

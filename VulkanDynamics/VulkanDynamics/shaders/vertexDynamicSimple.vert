@@ -24,24 +24,15 @@ layout (location = 3 ) out vec3 LightPos;
 layout (location = 4 ) out vec3 NormalView;
 
 void main() {
-
-	//mat4 translateToCenter = mat4 ( 1.0, 0.0, 0.0, 0.0,0.0, 1.0, 0.0, -1.5,0.0, 0.0, 1.0, 0.22,0.0, 0.0, 0.0, 1.0 ) ;
-	mat4 translateToCenter = mat4 ( 1.0, 0.0, 0.0, -9.0, 0.0, 1.0, 0.0, -9.0, 0.0, 0.0, 1.0, -30.0,0.0, 0.0, 0.0, 1.0 ) ;
 								
-	Normal = normalize( mat3(ubo.normalMatrix) *  VertexNormal);
-	//Normal = normalize( mat3(transpose(inverse(ubo.view * uboDyn.model ))) *  VertexNormal);
-	LightPos = vec3( ubo.view * ubo.lightPos);
+	mat3 normalView = transpose ( inverse ( mat3 ( ubo.view * ubo.model)));
+	Normal = normalView *  VertexNormal;
+
+	LightPos = vec3( ubo.view * ubo.model * ubo.lightPos);
     fragColor = color;
-	//Position = ubo.view * uboDyn.model * transpose(translateToCenter) * vec4(position, 1.0f);
-	vec4 glPosition = ubo.proj * ubo.view * vec4(position, 1.0f);
 
-	const vec3 positions[3] = vec3[3](
-		vec3(1.f,1.f, 0.0f),
-		vec3(-1.f,1.f, 0.0f),
-		vec3(0.f,-1.f, 0.0f)
-	);
-
-	//gl_Position = vec4(positions[gl_VertexIndex], 1.0f);
-
+	vec4 pos = vec4(position + instancePos, 1.0);
+	vec4 glPosition = ubo.proj * ubo.view * ubo.model * pos;
 	gl_Position = glPosition ;
+	Position = ubo.view * ubo.model * pos ;
 }

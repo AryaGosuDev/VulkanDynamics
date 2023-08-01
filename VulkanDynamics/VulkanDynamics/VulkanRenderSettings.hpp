@@ -72,11 +72,14 @@ namespace VkApplication {
         //auto attributeDescriptions = Vertex::getAttributeDescriptions();
         std::vector<VkVertexInputBindingDescription> bindingDescriptions;
         std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
+        std::array<VkVertexInputAttributeDescription, 3> attrib1 = Vertex::getAttributeDescriptions();
+        std::array<VkVertexInputAttributeDescription, 3> attrib2 = InstanceData::getAttributeDescriptions();
 
         // Vertex input bindings
         // The instancing pipeline uses a vertex input state with two bindings
         bindingDescriptions = { Vertex::getBindingDescription(), InstanceData::getBindingDescription() };
-        attributeDescriptions = { Vertex::getAttributeDescriptions().data() , InstanceData::getAttributeDescriptions().data() };
+        attributeDescriptions.insert(end(attributeDescriptions), begin(attrib1), end(attrib1));
+        attributeDescriptions.insert(end(attributeDescriptions), begin(attrib2), end(attrib2));
 
         vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
         vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
@@ -218,7 +221,7 @@ namespace VkApplication {
         shaderStages[1] = fragShaderStageInfo;
         // Only use the non-instanced input bindings and attribute descriptions
         vertexInputInfo.vertexBindingDescriptionCount = 1;
-        vertexInputInfo.vertexAttributeDescriptionCount = 4;
+        vertexInputInfo.vertexAttributeDescriptionCount = 3;
         check_vk_result(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipelines.ground));
         
         vkDestroyShaderModule(device, fragShaderModule, nullptr);
