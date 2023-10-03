@@ -140,6 +140,7 @@ struct InstanceData {
 	glm::vec3 pos;
 	glm::vec3 rot;
 	uint32_t texIndex;
+	glm::vec3 instanceColor;
 
 	static VkVertexInputBindingDescription getBindingDescription() {
 		VkVertexInputBindingDescription bindingDescription = {};
@@ -150,8 +151,8 @@ struct InstanceData {
 		return bindingDescription;
 	}
 
-	static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
-		std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions = {};
+	static std::array<VkVertexInputAttributeDescription, 4> getAttributeDescriptions() {
+		std::array<VkVertexInputAttributeDescription, 4> attributeDescriptions = {};
 
 		attributeDescriptions[0].binding = 1;
 		attributeDescriptions[0].location = 3;
@@ -168,11 +169,16 @@ struct InstanceData {
 		attributeDescriptions[2].format = VK_FORMAT_R32_SINT;
 		attributeDescriptions[2].offset = offsetof(InstanceData, texIndex);
 
+		attributeDescriptions[3].binding = 1;
+		attributeDescriptions[3].location = 6;
+		attributeDescriptions[3].format = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescriptions[3].offset = offsetof(InstanceData, instanceColor);
+
 		return attributeDescriptions;
 	}
 
 	bool operator==(const InstanceData& other) const {
-		return pos == other.pos && rot == other.rot && texIndex == other.texIndex;
+		return pos == other.pos && rot == other.rot && texIndex == other.texIndex && instanceColor == other.instanceColor;
 	}
 };
 
@@ -239,11 +245,13 @@ public:
 		cleanup();
 	}
 
+	
+
 private:
 
 	static MainVulkApplication* pinstance_;
 
-	int WIDTH =	1200;
+	int WIDTH = 1200;
 	int HEIGHT = 1000;
 	float reflectingSurfaceWidth = 1000;
 	float reflectingSurfaceHeight = 1000;
@@ -362,6 +370,8 @@ private:
 		VkFormat, VkImageTiling, VkImageUsageFlags, VkMemoryPropertyFlags, VkImage&, VkDeviceMemory&);
 	uint32_t findMemoryType(uint32_t, VkMemoryPropertyFlags);
 
+	void imagePickSetup();
+
 	void createRenderPass();
 	VkFormat findDepthFormat();
 	VkFormat findReflectFormat();
@@ -453,6 +463,9 @@ private:
 		createImguiContext();
 		createCommandBuffers();
 		createSyncObjects();
+
+		//Object picker setup
+		imagePickSetup();
 		
 		//Reflect
 		/*
@@ -562,5 +575,6 @@ namespace std {
 #include "VulkanTexture.hpp"
 #include "VulkanImgui.hpp"
 #include "VulkanSceneCube.hpp"
+#include "VulkanObjectPick.hpp"
 
 #endif

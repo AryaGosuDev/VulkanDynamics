@@ -4,6 +4,7 @@ C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanR
 C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanReflect.hpp(465,33): warning C4244: '=': conversion from 'float' to 'uint32_t', possible loss of data
 C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanReflect.hpp(466,34): warning C4244: '=': conversion from 'float' to 'uint32_t', possible loss of data
 C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanRenderSettings.hpp(182,54): warning C4267: '=': conversion from 'size_t' to 'uint32_t', possible loss of data
+C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanObjectPick.hpp(249,48): warning C4267: '=': conversion from 'size_t' to 'uint32_t', possible loss of data
 C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanDynamics.cpp(98,37): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
           with
           [
@@ -19,4 +20,6 @@ C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanD
           [
               T=float
           ]
+  imgui_impl_glfw.cpp
+  Generating Code...
   VulkanDynamics.vcxproj -> C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\x64\Debug\VulkanDynamics.exe

@@ -16,6 +16,7 @@ layout (location = 2 ) in vec3 position;
 layout (location = 3) in vec3 instancePos;
 layout (location = 4) in vec3 instanceRot;
 layout (location = 5) in int instanceTexIndex;
+layout (location = 6) in vec3 instanceColor;
 
 layout (location = 0 ) out vec3 fragColor;
 layout (location = 1 ) out vec3 Normal;

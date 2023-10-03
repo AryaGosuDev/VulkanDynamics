@@ -27,6 +27,8 @@
     <None Include="shaders\vertexDynamicReflection.vert" />
     <None Include="shaders\fragmentGround.frag" />
     <None Include="shaders\vertexGround.vert" />
+    <None Include="shaders\fragmentObjectPick.frag" />
+    <None Include="shaders\vertexObjectPick.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="InputHandler.h">
@@ -87,6 +89,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VulkanSceneArmKinematics.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanObjectPick.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

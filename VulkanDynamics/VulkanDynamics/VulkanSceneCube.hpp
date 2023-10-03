@@ -30,7 +30,7 @@ namespace VkApplication {
         else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
             throw std::runtime_error("failed to acquire swap chain image!");
         }
-
+        
         updateUniformBuffer(imageIndex);
 
         VkCommandBufferBeginInfo beginInfo{};
@@ -191,7 +191,6 @@ namespace VkApplication {
         double y_step = (double)CUBE_H / 4.0;
         double z_step = (double)CUBE_W / 4.0;
         
-       
         // Distribute spheres in cube evenly
         for (auto i = 0; i < 4; i++) {
             double x_pos = centerOfCube.x - ((double)CUBE_L / 2.0);
@@ -206,6 +205,7 @@ namespace VkApplication {
                     instanceData[indx].pos = glm::vec3(x_pos, y_pos, z_pos);
                     instanceData[indx].rot = glm::vec3(1.0, 1.0, 1.0);
                     instanceData[indx].texIndex = 1;
+                    instanceData[indx].instanceColor = glm::vec3(indx, indx, indx);
                 }
             }
         }

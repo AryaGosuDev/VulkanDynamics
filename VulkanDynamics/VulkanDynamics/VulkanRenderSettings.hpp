@@ -73,7 +73,7 @@ namespace VkApplication {
         std::vector<VkVertexInputBindingDescription> bindingDescriptions;
         std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
         std::array<VkVertexInputAttributeDescription, 3> attrib1 = Vertex::getAttributeDescriptions();
-        std::array<VkVertexInputAttributeDescription, 3> attrib2 = InstanceData::getAttributeDescriptions();
+        std::array<VkVertexInputAttributeDescription, 4> attrib2 = InstanceData::getAttributeDescriptions();
 
         // Vertex input bindings
         // The instancing pipeline uses a vertex input state with two bindings
