@@ -142,11 +142,12 @@ namespace VkApplication {
 		while (!(WindowRes = glfwWindowShouldClose(_app->window))) {
 			glfwPollEvents();
 			updateUniformBuffer(_app);
-			updateUniformBuffer_reflect(_app);
+			//updateUniformBuffer_reflect(_app);
 			//_app->transitionImageLayoutReflect();
 			//_app->drawFrameReflect();
 			//_app->drawFrame();
 			_app->drawFrameCube();
+			//if (motionMode == 1) _app->drawObjectPick(pointx, pointy);
 		}
 		vkDeviceWaitIdle(_app->device);
 	}

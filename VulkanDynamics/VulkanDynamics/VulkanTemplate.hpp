@@ -213,6 +213,7 @@ struct UniformFragmentObject {
 	glm::mat4 eyeViewMatrix;
 };
 
+
 struct {
 	VkPipeline ground;
 	VkPipeline cube;
@@ -371,6 +372,9 @@ private:
 	uint32_t findMemoryType(uint32_t, VkMemoryPropertyFlags);
 
 	void imagePickSetup();
+	void setupPickingCommandBuffer();
+	void createDescriptorSetObjectPicker();
+	void drawObjectPick(double, double);
 
 	void createRenderPass();
 	VkFormat findDepthFormat();
@@ -464,9 +468,10 @@ private:
 		createCommandBuffers();
 		createSyncObjects();
 
-		//Object picker setup
-		imagePickSetup();
-		
+		//Cube Scene
+		createCommandBuffersCube();
+		prepareInstanceDataCube();
+
 		//Reflect
 		/*
 		createRenderPassReflect();
@@ -479,20 +484,11 @@ private:
 		createReflectSyncObjects();
 		*/
 
-		//Cube Scene
-		createCommandBuffersCube();
-		prepareInstanceDataCube();
+		//Object picker setup
+		imagePickSetup();
+		createDescriptorSetObjectPicker();
+		setupPickingCommandBuffer();
 	}
-	/*
-	void mainLoop() {
-		while (!glfwWindowShouldClose(window)) {
-			glfwPollEvents();
-			drawFrame();
-		}
-
-		vkDeviceWaitIdle(device);
-	}
-	*/
 
 	void cleanup() {
 		cleanupSwapChain();

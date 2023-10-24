@@ -18,7 +18,7 @@ namespace VkApplication {
     std::vector<VkCommandBuffer> commandBuffersCube;
 
     void MainVulkApplication::drawFrameCube() {
-        vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+        check_vk_result(vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX));
 
         uint32_t imageIndex;
         VkResult result = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX,
@@ -90,8 +90,7 @@ namespace VkApplication {
         */
 
         vkCmdEndRenderPass(commandBuffersCube[imageIndex]);
-
-        /*
+        
         // DRAW GUI
         render_gui();
 
@@ -108,13 +107,13 @@ namespace VkApplication {
         info.clearValueCount = static_cast<uint32_t>(clearValuesGui.size());
         info.pClearValues = clearValuesGui.data();
 
-        vkCmdBeginRenderPass(commandBuffers[imageIndex], &info, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(commandBuffersCube[imageIndex], &info, VK_SUBPASS_CONTENTS_INLINE);
 
-        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffers[imageIndex]);
+        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffersCube[imageIndex]);
 
-        vkCmdEndRenderPass(commandBuffers[imageIndex]);
+        vkCmdEndRenderPass(commandBuffersCube[imageIndex]);
         // END DRAW GUI
-        */
+        
         if (vkEndCommandBuffer(commandBuffersCube[imageIndex]) != VK_SUCCESS) {
             throw std::runtime_error("failed to record command buffer!");
         }
@@ -167,7 +166,6 @@ namespace VkApplication {
         }
 
         currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-        //std::cout << currentFrame << std::endl;
     }
 
     void MainVulkApplication::createCommandBuffersCube() {
@@ -186,10 +184,11 @@ namespace VkApplication {
     void MainVulkApplication::prepareInstanceDataCube() {
         std::vector<InstanceData> instanceData;
         instanceData.resize(SPHERE_INSTANCE_COUNT_CUBE);
+        double invDistance = 2.0;
         
-        double x_step = (double)CUBE_L / 4.0;
-        double y_step = (double)CUBE_H / 4.0;
-        double z_step = (double)CUBE_W / 4.0;
+        double x_step = (double)CUBE_L / invDistance;
+        double y_step = (double)CUBE_H / invDistance;
+        double z_step = (double)CUBE_W / invDistance;
         
         // Distribute spheres in cube evenly
         for (auto i = 0; i < 4; i++) {
@@ -205,7 +204,7 @@ namespace VkApplication {
                     instanceData[indx].pos = glm::vec3(x_pos, y_pos, z_pos);
                     instanceData[indx].rot = glm::vec3(1.0, 1.0, 1.0);
                     instanceData[indx].texIndex = 1;
-                    instanceData[indx].instanceColor = glm::vec3(indx, indx, indx);
+                    instanceData[indx].instanceColor = glm::vec3(0, 0, indx);
                 }
             }
         }

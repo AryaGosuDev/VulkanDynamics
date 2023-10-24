@@ -142,7 +142,6 @@ namespace VkApplication {
         }
 
         currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-        //std::cout << currentFrame << std::endl;
     }
 
     void MainVulkApplication::createCommandBuffers() {

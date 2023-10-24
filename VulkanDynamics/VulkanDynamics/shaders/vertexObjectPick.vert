@@ -24,5 +24,5 @@ void main() {
     vec4 pos = vec4(position + instancePos, 1.0);
 
     gl_Position = ubo.proj * ubo.view * ubo.model * pos;
-    outObjectID = uint(instanceColor.x);
+    outObjectID = uint(instanceColor.z);
 }

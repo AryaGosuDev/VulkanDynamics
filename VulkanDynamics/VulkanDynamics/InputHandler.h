@@ -8,6 +8,7 @@
 
 bool stopAnimation = true;
 int motionMode = 0;
+bool selectMode = false;
 bool motionFlying = false;
 double startX = 0;
 double startY = 0;
@@ -67,13 +68,20 @@ void readInput_callback(GLFWwindow* window, int key, int scancode, int action, i
 		lightPositionz = lightPositionIncrement;
 		changeLightPos[2] = 1;
 	}
+
+	else if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+		motionMode++;
+		if (motionMode == 3) motionMode = 0;
+
+	}
 }
 
 void mouse_cursor_callback(GLFWwindow* window, double xpos, double ypos) {
 	pointx = xpos;
 	pointy = ypos;
+	//std::cout << motionMode << std::endl;
 
-	if (lbutton_down) {
+	if (lbutton_down && motionMode == 0) {
 
 		phi += (xpos - startX) / 100.0 ;
 		startX = xpos;
@@ -81,15 +89,21 @@ void mouse_cursor_callback(GLFWwindow* window, double xpos, double ypos) {
 		startY = ypos;
 		//std::cout << phi << std::endl;
 	}
+	else if (lbutton_down && motionMode == 1) {
+		selectMode = true;
+	}
+	else if (motionMode == 1) {
+		selectMode = false;
+	}
 }
  
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
 
-	if (button == GLFW_MOUSE_BUTTON_LEFT ) {
+	if (button == GLFW_MOUSE_BUTTON_LEFT && motionMode == 0 ) {
 		if (GLFW_PRESS == action) {
 			lbutton_down = true;
 			startX = pointx;
-			startY = pointy;	
+			startY = pointy;	 
 			motionFlying = true;
 		}
 		else if (GLFW_RELEASE == action) {
