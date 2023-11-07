@@ -8,9 +8,7 @@ namespace VkApplication {
     VkPipelineLayout pipelineLayout_reflect;
     VkPipeline graphicsPipeline_reflect;
 
-    VkImage textureImage_reflect;
     VkDeviceMemory textureImageMemory_reflect;
-    VkImageView textureImageView_reflect;
     VkSampler textureSampler_reflect;
 
     VkFramebuffer reflectFramebuffers;
@@ -24,13 +22,73 @@ namespace VkApplication {
 
     VkCommandBuffer commandBuffer_Reflect;
 
-    VkSemaphore imageAvailableSemaphores_Reflect;
-    VkSemaphore renderFinishedSemaphores_Reflect;
+    VkSemaphore imageAvailableSemaphores_Reflect = 0;
+    VkSemaphore renderFinishedSemaphores_Reflect = 0;
     VkFence inFlightFences_reflect;
 
-    void MainVulkApplication::createGraphicsPipelineReflect() {
+    void MainVulkApplication::reflectSceneSetup() {
 
-        auto vertShaderCode = readFile("shaders/vertReflect.spv");
+        // Define the color attachment description
+        VkAttachmentDescription colorAttachment = {};
+        colorAttachment.format = swapChainImageFormat;            // Format of the color attachment
+        colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;              // Number of samples
+        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;         // Clear the attachment at the beginning
+        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;       // Store the attachment at the end
+        colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;  // Not using stencil, so set to DONT_CARE
+        colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;  // Not using stencil, so set to DONT_CARE
+        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;    // Layout before render pass
+        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; // Layout after render pass
+
+        VkAttachmentDescription depthAttachment{};
+        depthAttachment.format = findDepthFormat();
+        depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+        // Define the attachment reference
+        VkAttachmentReference colorAttachmentRef = {};
+        colorAttachmentRef.attachment = 0;                            // Index of the color attachment in the attachment descriptions
+        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        VkAttachmentReference depthAttachmentRef{};
+        depthAttachmentRef.attachment = 1;
+        depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+        // Define the subpass description
+        VkSubpassDescription subpass = {};
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;  // Bind point for the subpass
+        subpass.colorAttachmentCount = 1;                             // Number of color attachments
+        subpass.pColorAttachments = &colorAttachmentRef;              // Color attachment reference(s)
+        subpass.pDepthStencilAttachment = &depthAttachmentRef;                    // No depth/stencil attachment
+
+        // Define the subpass dependency
+        VkSubpassDependency subpassDependency = {};
+        subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;           // Implicit subpass before the render pass
+        subpassDependency.dstSubpass = 0;                              // Subpass index of this render pass
+        subpassDependency.srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+        subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        subpassDependency.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;;
+        subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+        // Fill in the reflectRenderPassInfo structure
+        VkAttachmentDescription attachments[] = { colorAttachment, depthAttachment };
+        VkRenderPassCreateInfo reflectRenderPassInfo = {};
+        reflectRenderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        reflectRenderPassInfo.attachmentCount = 2;                     // Number of attachments
+        reflectRenderPassInfo.pAttachments = attachments;         // Attachment description(s)
+        reflectRenderPassInfo.subpassCount = 1;                        // Number of subpasses
+        reflectRenderPassInfo.pSubpasses = &subpass;                   // Subpass description(s)
+        reflectRenderPassInfo.dependencyCount = 1;                     // Number of subpass dependencies
+        reflectRenderPassInfo.pDependencies = &subpassDependency;       // Subpass dependency(ies)
+
+        if (vkCreateRenderPass(device, &reflectRenderPassInfo, nullptr, &renderPass_reflect) != VK_SUCCESS) 
+            throw std::runtime_error("failed to create render pass!");
+        
+        auto vertShaderCode = readFile("shaders/vertCube.spv");
         auto fragShaderCode = readFile("shaders/fragReflect.spv");
 
         VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
@@ -53,12 +111,22 @@ namespace VkApplication {
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
-        auto bindingDescription = Vertex::getBindingDescription();
-        auto attributeDescriptions = Vertex::getAttributeDescriptions();
+        std::vector<VkVertexInputBindingDescription> bindingDescriptions;
+        std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
 
-        vertexInputInfo.vertexBindingDescriptionCount = 1;
+        // Vertex input bindings
+        // The instancing pipeline uses a vertex input state with two bindings
+        bindingDescriptions.push_back(Vertex::getBindingDescription());
+        bindingDescriptions.push_back(InstanceData::getBindingDescription());
+        {
+            auto tempVertAttrib = Vertex::getAttributeDescriptions(); auto tempInstaAttrib = InstanceData::getAttributeDescriptions();
+            attributeDescriptions.insert(end(attributeDescriptions), begin(tempVertAttrib), end(tempVertAttrib));
+            attributeDescriptions.insert(end(attributeDescriptions), begin(tempInstaAttrib), end(tempInstaAttrib));
+        }
+
+        vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
         vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-        vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+        vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
         vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
         VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
@@ -95,7 +163,8 @@ namespace VkApplication {
         rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
         rasterizer.lineWidth = 1.0f;
         rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-        rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+        //rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+        rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
         rasterizer.depthBiasEnable = VK_FALSE;
 
         VkPipelineMultisampleStateCreateInfo multisampling{};
@@ -136,11 +205,10 @@ namespace VkApplication {
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutInfo.setLayoutCount = 1;
-        pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
+        pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout_reflect;
 
-        if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout_reflect) != VK_SUCCESS) {
+        if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout_reflect) != VK_SUCCESS) 
             throw std::runtime_error("failed to create pipeline layout!");
-        }
 
         VkGraphicsPipelineCreateInfo pipelineInfo{};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -163,82 +231,57 @@ namespace VkApplication {
 
         vkDestroyShaderModule(device, fragShaderModule, nullptr);
         vkDestroyShaderModule(device, vertShaderModule, nullptr);
+
+        VkSemaphoreCreateInfo semaphoreInfo{};
+        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+        VkFenceCreateInfo fenceInfo{};
+        fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+        if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores_Reflect) != VK_SUCCESS ||
+            vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores_Reflect) != VK_SUCCESS) 
+            throw std::runtime_error("Failed to create semaphores!");
+        
+        check_vk_result(vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences_reflect));
     }
 
-    void MainVulkApplication::createRenderPassReflect() {
-        // Define the color attachment description
-        VkAttachmentDescription colorAttachment = {};
-        colorAttachment.format = VK_FORMAT_B8G8R8A8_UNORM;            // Format of the color attachment
-        colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;              // Number of samples
-        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;         // Clear the attachment at the beginning
-        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;       // Store the attachment at the end
-        colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;  // Not using stencil, so set to DONT_CARE
-        colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;  // Not using stencil, so set to DONT_CARE
-        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;    // Layout before render pass
-        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; // Layout after render pass
+    void MainVulkApplication::createDescriptorSetLayoutReflect() {
+        VkDescriptorSetLayoutBinding uboLayoutBinding{};
+        uboLayoutBinding.binding = 0;
+        uboLayoutBinding.descriptorCount = 1;
+        uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        uboLayoutBinding.pImmutableSamplers = nullptr;
+        uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-        VkAttachmentDescription depthAttachment{};
-        depthAttachment.format = findDepthFormat();
-        depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-        depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-        
-        // Define the attachment reference
-        VkAttachmentReference colorAttachmentRef = {};
-        colorAttachmentRef.attachment = 0;                            // Index of the color attachment in the attachment descriptions
-        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        VkDescriptorSetLayoutBinding fragmentLayoutBinding{};
+        fragmentLayoutBinding.binding = 1;
+        fragmentLayoutBinding.descriptorCount = 1;
+        fragmentLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        fragmentLayoutBinding.pImmutableSamplers = nullptr;
+        fragmentLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-        VkAttachmentReference depthAttachmentRef{};
-        depthAttachmentRef.attachment = 1;
-        depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, fragmentLayoutBinding };
+        VkDescriptorSetLayoutCreateInfo layoutInfo{};
+        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+        layoutInfo.pBindings = bindings.data();
 
-        // Define the subpass description
-        VkSubpassDescription subpass = {};
-        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;  // Bind point for the subpass
-        subpass.colorAttachmentCount = 1;                             // Number of color attachments
-        subpass.pColorAttachments = &colorAttachmentRef;              // Color attachment reference(s)
-        subpass.pDepthStencilAttachment = &depthAttachmentRef;                    // No depth/stencil attachment
-
-        // Define the subpass dependency
-        VkSubpassDependency subpassDependency = {};
-        subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;           // Implicit subpass before the render pass
-        subpassDependency.dstSubpass = 0;                              // Subpass index of this render pass
-        subpassDependency.srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-        subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        subpassDependency.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;;
-        subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
-        
-        // Fill in the reflectRenderPassInfo structure
-        VkAttachmentDescription attachments[] = { colorAttachment, depthAttachment };
-        VkRenderPassCreateInfo reflectRenderPassInfo = {};
-        reflectRenderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-        reflectRenderPassInfo.attachmentCount = 2;                     // Number of attachments
-        reflectRenderPassInfo.pAttachments = attachments;         // Attachment description(s)
-        reflectRenderPassInfo.subpassCount = 1;                        // Number of subpasses
-        reflectRenderPassInfo.pSubpasses = &subpass;                   // Subpass description(s)
-        reflectRenderPassInfo.dependencyCount = 1;                     // Number of subpass dependencies
-        reflectRenderPassInfo.pDependencies = &subpassDependency;       // Subpass dependency(ies)
-
-        if (vkCreateRenderPass(device, &reflectRenderPassInfo, nullptr, &renderPass_reflect) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create render pass!");
+        if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout_reflect) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create descriptor set layout!");
         }
     }
-
+    
     void MainVulkApplication::createDescriptorSetReflect() {
         
         VkDescriptorSetAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
         allocInfo.descriptorPool = descriptorPool;
         allocInfo.descriptorSetCount = 1;
-        allocInfo.pSetLayouts = &descriptorSetLayout;
+        allocInfo.pSetLayouts = &descriptorSetLayout_reflect;
 
-        if (vkAllocateDescriptorSets(device, &allocInfo, &descriptorSetReflect) != VK_SUCCESS) {
+        if (vkAllocateDescriptorSets(device, &allocInfo, &descriptorSetReflect) != VK_SUCCESS) 
             throw std::runtime_error("failed to allocate descriptor sets!");
-        }
         
         VkDescriptorBufferInfo bufferInfo{};
         bufferInfo.buffer = uniformBuffer_Reflect;
@@ -270,143 +313,45 @@ namespace VkApplication {
 
         vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
     }
-
+    
     void MainVulkApplication::drawFrameReflect() {
-        vkWaitForFences(device, 1, &inFlightFences_reflect, VK_TRUE, UINT64_MAX);
-
-        //std::cout << "draw" << std::endl;
-
-        //uint32_t imageIndex;
-        //VkResult result = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX,
-            //imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+        check_vk_result(vkWaitForFences(device, 1, &inFlightFences_reflect, VK_TRUE, UINT64_MAX));
+        check_vk_result(vkResetFences(device, 1, &inFlightFences_reflect));
 
         updateUniformBufferReflect();
 
-        VkCommandBufferBeginInfo beginInfo{};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-
-        if (vkBeginCommandBuffer(commandBuffer_Reflect, &beginInfo) != VK_SUCCESS)
-            throw std::runtime_error("failed to begin recording command buffer!");
-
-        // Perform the initial image layout transition before starting the render pass
-        VkImageMemoryBarrier barrierToColorAttachment = {};
-        barrierToColorAttachment.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        barrierToColorAttachment.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        barrierToColorAttachment.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        barrierToColorAttachment.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrierToColorAttachment.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrierToColorAttachment.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
-        barrierToColorAttachment.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-        barrierToColorAttachment.image = textureImage_reflect;
-        barrierToColorAttachment.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-
-        vkCmdPipelineBarrier(
-            commandBuffer_Reflect,
-            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-            0,
-            0, nullptr,
-            0, nullptr,
-            1, &barrierToColorAttachment
-        );
-
-        VkRenderPassBeginInfo renderPassInfo{};
-        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassInfo.renderPass = renderPass_reflect;
-        renderPassInfo.framebuffer = reflectFramebuffers;
-        renderPassInfo.renderArea.offset = { 0, 0 };
-        renderPassInfo.renderArea.extent = { (unsigned int)reflectingSurfaceWidth,(unsigned int)reflectingSurfaceHeight };
-
-        std::array<VkClearValue, 2> clearValues{};
-        clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };
-        clearValues[1].depthStencil = { 1.0f, 0 };
-
-        renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-        renderPassInfo.pClearValues = clearValues.data();
-
-        vkCmdBeginRenderPass(commandBuffer_Reflect, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-        vkCmdBindPipeline(commandBuffer_Reflect, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-
-        VkBuffer vertexBuffers[] = { vertexBuffer };
-        VkDeviceSize offsets[] = { 0 };
-
-        //draw
-        vkCmdBindVertexBuffers(commandBuffer_Reflect, 0, 1, vertexBuffers, offsets);
-        vkCmdBindIndexBuffer(commandBuffer_Reflect, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-        vkCmdBindDescriptorSets(commandBuffer_Reflect, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout_reflect, 0, 1, &descriptorSetReflect, 0, NULL);
-        vkCmdDrawIndexed(commandBuffer_Reflect, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
-
-        //draw
-        vertexBuffers[0] = { vertexBuffer_ground };
-        vkCmdBindVertexBuffers(commandBuffer_Reflect, 0, 1, vertexBuffers, offsets);
-        vkCmdBindIndexBuffer(commandBuffer_Reflect, indexBuffer_ground, 0, VK_INDEX_TYPE_UINT32);
-        vkCmdBindDescriptorSets(commandBuffer_Reflect, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout_reflect, 0, 1, &descriptorSetReflect, 0, NULL);
-        vkCmdDrawIndexed(commandBuffer_Reflect, static_cast<uint32_t>(indices_ground.size()), 1, 0, 0, 0);
-        /*
-        //draw
-        vertexBuffers[0] = { vertexBuffer_mirror };
-        vkCmdBindVertexBuffers(commandBuffer_Reflect, 0, 1, vertexBuffers, offsets);
-        vkCmdBindIndexBuffer(commandBuffer_Reflect, indexBuffer_mirror, 0, VK_INDEX_TYPE_UINT32);
-        vkCmdBindDescriptorSets(commandBuffer_Reflect, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout_reflect, 0, 1, &descriptorSetReflect, 0, NULL);
-        vkCmdDrawIndexed(commandBuffer_Reflect, static_cast<uint32_t>(indices_mirror.size()), 1, 0, 0, 0);
-        */
-        vkCmdEndRenderPass(commandBuffer_Reflect);
-
-        // Perform the image layout transition back after ending the render pass
-        VkImageMemoryBarrier barrierToShaderReadOnly = {};
-        barrierToShaderReadOnly.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        barrierToShaderReadOnly.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        barrierToShaderReadOnly.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        barrierToShaderReadOnly.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrierToShaderReadOnly.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrierToShaderReadOnly.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-        barrierToShaderReadOnly.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-        barrierToShaderReadOnly.image = textureImage_reflect;
-        barrierToShaderReadOnly.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-
-        vkCmdPipelineBarrier(
-            commandBuffer_Reflect,
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-            0,
-            0, nullptr,
-            0, nullptr,
-            1, &barrierToShaderReadOnly
-        );
-
-
-        if (vkEndCommandBuffer(commandBuffer_Reflect) != VK_SUCCESS) {
-            throw std::runtime_error("failed to record command buffer!");
-        }
-
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submitInfo.waitSemaphoreCount = 0;
-        submitInfo.pWaitSemaphores = NULL;
-        submitInfo.pWaitDstStageMask = NULL;
+
+        VkSemaphore waitSemaphores[] = { imageAvailableSemaphores_Reflect };
+        VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+        submitInfo.waitSemaphoreCount = 0; // cancel this semaphore
+        submitInfo.pWaitSemaphores = nullptr;
+        submitInfo.pWaitDstStageMask = waitStages;
+
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &commandBuffer_Reflect;
+
+        VkSemaphore signalSemaphores[] = { renderFinishedSemaphores_Reflect };
         submitInfo.signalSemaphoreCount = 1;
-        submitInfo.pSignalSemaphores = &imageAvailableSemaphores_Reflect;
+        submitInfo.pSignalSemaphores = signalSemaphores;
 
-        check_vk_result(vkResetFences(device, 1, &inFlightFences_reflect));
+        check_vk_result(vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences_reflect));
+        check_vk_result(vkWaitForFences(device, 1, &inFlightFences_reflect, VK_TRUE, UINT64_MAX));
 
-        VkResult returnThis = vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences_reflect);
-        if (returnThis != VK_SUCCESS) {
-            throw std::runtime_error("failed to submit draw command buffer! " + std::to_string(returnThis));
-        }
+        transitionImageLayout(textureImage_reflect, swapChainImageFormat, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
 
     void MainVulkApplication::updateUniformBufferReflect() {
         
         void* data;
-        vkMapMemory(device, uniformBuffersMemory_Reflect, 0, sizeof(ubo), 0, &data);
-        memcpy(data, &ubo, sizeof(ubo));
+        vkMapMemory(device, uniformBuffersMemory_Reflect, 0, sizeof(ubo_reflect), 0, &data);
+        memcpy(data, &ubo_reflect, sizeof(ubo_reflect));
         vkUnmapMemory(device, uniformBuffersMemory_Reflect);
 
         void* data2;
-        vkMapMemory(device, uniformFragBuffersMemory_Reflect, 0, sizeof(ufo), 0, &data2);
-        memcpy(data2, &ufo, sizeof(ufo));
+        vkMapMemory(device, uniformFragBuffersMemory_Reflect, 0, sizeof(ufo_reflect), 0, &data2);
+        memcpy(data2, &ufo_reflect, sizeof(ufo_reflect));
         vkUnmapMemory(device, uniformFragBuffersMemory_Reflect);
     }
 
@@ -431,19 +376,60 @@ namespace VkApplication {
         allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
         allocInfo.commandBufferCount = 1;
 
-        if (vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer_Reflect) != VK_SUCCESS)
-            throw std::runtime_error("failed to allocate command buffers!");
+        check_vk_result(vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer_Reflect));
+
+        // Start recording commands
+        VkCommandBufferBeginInfo beginInfo = {};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+        check_vk_result(vkBeginCommandBuffer(commandBuffer_Reflect, &beginInfo));
+
+        VkRenderPassBeginInfo renderPassInfo = {};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassInfo.renderPass = renderPass_reflect;
+        renderPassInfo.framebuffer = reflectFramebuffers;
+        renderPassInfo.renderArea.offset = { 0, 0 };
+        renderPassInfo.renderArea.extent = { reflectingSurfaceWidth, reflectingSurfaceHeight };  // Set this to the size of your picking framebuffer
+
+        std::array<VkClearValue, 2> clearValues{};
+        clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };
+        clearValues[1].depthStencil = { 1.0f, 0 };
+        renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+        renderPassInfo.pClearValues = clearValues.data();
+
+        vkCmdBeginRenderPass(commandBuffer_Reflect, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBindPipeline(commandBuffer_Reflect, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline_reflect);
+
+        VkBuffer vertexBuffers[] = { vertexBuffer };
+        VkDeviceSize offsets[] = { 0 };
+        vkCmdBindDescriptorSets(commandBuffer_Reflect, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout_reflect, 0, 1, &descriptorSetReflect, 0, nullptr);
+        vkCmdBindPipeline(commandBuffer_Reflect, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline_reflect);
+        vkCmdBindVertexBuffers(commandBuffer_Reflect, 0, 1, vertexBuffers, offsets);
+        vertexBuffers[0] = { instanceBufferCube.buffer };
+        vkCmdBindVertexBuffers(commandBuffer_Reflect, 1, 1, vertexBuffers, offsets);
+        vkCmdBindIndexBuffer(commandBuffer_Reflect, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdDrawIndexed(commandBuffer_Reflect, static_cast<uint32_t>(indices.size()), SPHERE_INSTANCE_COUNT_CUBE, 0, 0, 0);
+
+        vertexBuffers[0] = { vertexBuffer_ground };
+        vkCmdBindDescriptorSets(commandBuffer_Reflect, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout_reflect, 0, 1, &descriptorSetReflect, 0, nullptr);
+        vkCmdBindPipeline(commandBuffer_Reflect, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline_reflect);
+        vkCmdBindVertexBuffers(commandBuffer_Reflect, 0, 1, vertexBuffers, offsets);
+        vkCmdBindIndexBuffer(commandBuffer_Reflect, indexBuffer_ground, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdDrawIndexed(commandBuffer_Reflect, static_cast<uint32_t>(indices_ground.size()), 1, 0, 0, 0);
+
+        // End the picking render pass
+        vkCmdEndRenderPass(commandBuffer_Reflect);
+
+        // Finish recording the command buffer
+        vkEndCommandBuffer(commandBuffer_Reflect);
     }
     
     void MainVulkApplication::createReflectImage() {
-        //VkFormat ReflectFormat = findReflectFormat();
 
         createImage(reflectingSurfaceWidth, reflectingSurfaceHeight, swapChainImageFormat, VK_IMAGE_TILING_OPTIMAL,
             VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
             textureImage_reflect, textureImageMemory_reflect);
         textureImageView_reflect = createImageView(textureImage_reflect, swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
-        
-        //transitionImageLayout(textureImage_reflect, ReflectFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     }
 
     VkFormat MainVulkApplication::findReflectFormat() {
@@ -469,60 +455,6 @@ namespace VkApplication {
         if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &reflectFramebuffers) != VK_SUCCESS) {
             throw std::runtime_error("failed to create framebuffer!");
         }
-    }
-
-    void MainVulkApplication::createReflectSyncObjects() {
-        
-        VkSemaphoreCreateInfo semaphoreInfo{};
-        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-        VkFenceCreateInfo fenceInfo{};
-        fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-        fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-        if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores_Reflect) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create synchronization objects for a frame!");
-        }
-
-        check_vk_result(vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences_reflect) );
-    }
-
-    void MainVulkApplication::transitionImageLayoutReflect() {
-        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
-
-        VkImageMemoryBarrier barrier{};
-        barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        barrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;  // or whatever the old layout happens to be
-        barrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.image = textureImage_reflect;
-        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        barrier.subresourceRange.baseMipLevel = 0;
-        barrier.subresourceRange.levelCount = 1;
-        barrier.subresourceRange.baseArrayLayer = 0;
-        barrier.subresourceRange.layerCount = 1;
-
-        // You might need to adjust these access flags and pipeline stages to fit your situation
-        barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;  // depends on the old layout
-        barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
-        VkPipelineStageFlags sourceStage;
-        VkPipelineStageFlags destinationStage;
-
-        sourceStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;  // depends on the old layout
-        destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
-        vkCmdPipelineBarrier(
-            commandBuffer,
-            sourceStage, destinationStage,
-            0,
-            0, nullptr,
-            0, nullptr,
-            1, &barrier
-        );
-
-        endSingleTimeCommands(commandBuffer);
     }
 }
 

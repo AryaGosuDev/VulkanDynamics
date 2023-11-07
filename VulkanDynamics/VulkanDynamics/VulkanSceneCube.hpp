@@ -59,6 +59,9 @@ namespace VkApplication {
         VkBuffer vertexBuffers[] = { vertexBuffer };
         VkDeviceSize offsets[] = { 0 };
 
+        PushConstants pushConstants;
+        pushConstants.useReflectionSampler = false;  // or false, depending on the object
+        
         //draw cube spheres
         vkCmdBindDescriptorSets(commandBuffersCube[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[imageIndex], 0, NULL);
         vkCmdBindPipeline(commandBuffersCube[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.cube);
@@ -69,6 +72,7 @@ namespace VkApplication {
         vkCmdBindVertexBuffers(commandBuffersCube[imageIndex], 1, 1, vertexBuffers, offsets);
         // Bind index buffer
         vkCmdBindIndexBuffer(commandBuffersCube[imageIndex], indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdPushConstants(commandBuffersCube[imageIndex], pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &pushConstants);
         // Render instances
         vkCmdDrawIndexed(commandBuffersCube[imageIndex], static_cast<uint32_t>(indices.size()), SPHERE_INSTANCE_COUNT_CUBE, 0, 0, 0);
 
@@ -78,17 +82,20 @@ namespace VkApplication {
         vkCmdBindPipeline(commandBuffersCube[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.ground);
         vkCmdBindVertexBuffers(commandBuffersCube[imageIndex], 0, 1, vertexBuffers, offsets);
         vkCmdBindIndexBuffer(commandBuffersCube[imageIndex], indexBuffer_ground, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdPushConstants(commandBuffersCube[imageIndex], pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &pushConstants);
         vkCmdDrawIndexed(commandBuffersCube[imageIndex], static_cast<uint32_t>(indices_ground.size()), 1, 0, 0, 0);
 
+        
         //draw mirror
-        /*
+        pushConstants.useReflectionSampler = true;
         vertexBuffers[0] = { vertexBuffer_mirror };
-        vkCmdBindVertexBuffers(commandBuffers[imageIndex], 0, 1, vertexBuffers, offsets);
-        vkCmdBindIndexBuffer(commandBuffers[imageIndex], indexBuffer_mirror, 0, VK_INDEX_TYPE_UINT32);
-        vkCmdBindDescriptorSets(commandBuffers[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[imageIndex], 0, NULL);
-        vkCmdDrawIndexed(commandBuffers[imageIndex], static_cast<uint32_t>(indices_mirror.size()), 1, 0, 0, 0);
-        */
-
+        vkCmdBindDescriptorSets(commandBuffersCube[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[imageIndex], 0, NULL);
+        vkCmdBindPipeline(commandBuffersCube[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.mirror);
+        vkCmdBindVertexBuffers(commandBuffersCube[imageIndex], 0, 1, vertexBuffers, offsets);
+        vkCmdBindIndexBuffer(commandBuffersCube[imageIndex], indexBuffer_mirror, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdPushConstants(commandBuffersCube[imageIndex], pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &pushConstants);
+        vkCmdDrawIndexed(commandBuffersCube[imageIndex], static_cast<uint32_t>(indices_mirror.size()), 1, 0, 0, 0);
+        
         vkCmdEndRenderPass(commandBuffersCube[imageIndex]);
         
         // DRAW GUI
@@ -166,6 +173,8 @@ namespace VkApplication {
         }
 
         currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+
+        transitionImageLayout(textureImage_reflect, swapChainImageFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     }
 
     void MainVulkApplication::createCommandBuffersCube() {

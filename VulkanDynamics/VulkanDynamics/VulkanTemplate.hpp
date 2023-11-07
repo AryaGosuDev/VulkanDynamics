@@ -99,6 +99,7 @@ struct Vertex {
 	glm::vec3 color;
 	glm::vec3 vertexNormal;
 	glm::vec3 pos;
+	glm::vec2 texCoords;
 
 	static VkVertexInputBindingDescription getBindingDescription() {
 		VkVertexInputBindingDescription bindingDescription = {};
@@ -109,8 +110,8 @@ struct Vertex {
 		return bindingDescription;
 	}
 
-	static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
-		std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions = {};
+	static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions() {
+		std::vector<VkVertexInputAttributeDescription> attributeDescriptions(4);
 
 		attributeDescriptions[0].binding = 0;
 		attributeDescriptions[0].location = 0;
@@ -126,6 +127,11 @@ struct Vertex {
 		attributeDescriptions[2].location = 2;
 		attributeDescriptions[2].format = VK_FORMAT_R32G32B32_SFLOAT;
 		attributeDescriptions[2].offset = offsetof(Vertex, pos);
+
+		attributeDescriptions[3].binding = 0;
+		attributeDescriptions[3].location = 3;
+		attributeDescriptions[3].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescriptions[3].offset = offsetof(Vertex, texCoords);
 
 		return attributeDescriptions;
 	}
@@ -151,26 +157,26 @@ struct InstanceData {
 		return bindingDescription;
 	}
 
-	static std::array<VkVertexInputAttributeDescription, 4> getAttributeDescriptions() {
-		std::array<VkVertexInputAttributeDescription, 4> attributeDescriptions = {};
+	static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions() {
+		std::vector<VkVertexInputAttributeDescription> attributeDescriptions(4);
 
 		attributeDescriptions[0].binding = 1;
-		attributeDescriptions[0].location = 3;
+		attributeDescriptions[0].location = 4;
 		attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
 		attributeDescriptions[0].offset = offsetof(InstanceData, pos);
 
 		attributeDescriptions[1].binding = 1;
-		attributeDescriptions[1].location = 4;
+		attributeDescriptions[1].location = 5;
 		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
 		attributeDescriptions[1].offset = offsetof(InstanceData, rot);
 
 		attributeDescriptions[2].binding = 1;
-		attributeDescriptions[2].location = 5;
+		attributeDescriptions[2].location = 6;
 		attributeDescriptions[2].format = VK_FORMAT_R32_SINT;
 		attributeDescriptions[2].offset = offsetof(InstanceData, texIndex);
 
 		attributeDescriptions[3].binding = 1;
-		attributeDescriptions[3].location = 6;
+		attributeDescriptions[3].location = 7;
 		attributeDescriptions[3].format = VK_FORMAT_R32G32B32_SFLOAT;
 		attributeDescriptions[3].offset = offsetof(InstanceData, instanceColor);
 
@@ -213,10 +219,14 @@ struct UniformFragmentObject {
 	glm::mat4 eyeViewMatrix;
 };
 
+struct PushConstants {
+	int useReflectionSampler;
+};
 
 struct {
 	VkPipeline ground;
 	VkPipeline cube;
+	VkPipeline mirror;
 } pipelines;
 
 class MainVulkApplication {
@@ -246,16 +256,14 @@ public:
 		cleanup();
 	}
 
-	
-
 private:
 
 	static MainVulkApplication* pinstance_;
 
-	int WIDTH = 1200;
-	int HEIGHT = 1000;
-	float reflectingSurfaceWidth = 1000;
-	float reflectingSurfaceHeight = 1000;
+	unsigned int WIDTH = 1200;
+	unsigned int HEIGHT = 1000;
+	unsigned int reflectingSurfaceWidth = 1200;
+	unsigned int reflectingSurfaceHeight = 1000;
 
 	GLFWwindow* window;
 	ImGui_ImplVulkanH_Window imgui_window;
@@ -292,6 +300,9 @@ private:
 	VkDeviceMemory textureImageMemory;
 	VkImageView textureImageView;
 	VkSampler textureSampler;
+
+	VkImage textureImage_reflect;
+	VkImageView textureImageView_reflect;
 
 	std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;
@@ -383,8 +394,7 @@ private:
 
 	void createDescriptorSetLayout();
 	void createGraphicsPipeline();
-	void createGraphicsPipelineReflect();
-	void createRenderPassReflect();
+	void reflectSceneSetup();
 	VkShaderModule createShaderModule(const std::vector<char>&);
 	void createCommandPool();
 	void createDepthResources();
@@ -412,11 +422,11 @@ private:
 	void endSingleTimeCommands(VkCommandBuffer);
 
 	void createSyncObjects();
-	void createReflectSyncObjects();
 	void drawFrame();
 	void drawFrameReflect();
 	void updateUniformBuffer(uint32_t );
 	void updateUniformBufferReflect();
+	void createDescriptorSetLayoutReflect();
 	void recreateSwapChain();
 	void cleanupSwapChain();
 
@@ -426,7 +436,6 @@ private:
 	void transitionImageLayout(VkImage, VkFormat, VkImageLayout, VkImageLayout);
 	void createTextureImageView();
 	void createTextureSampler();
-	void transitionImageLayoutReflect();
 
 	void prepareInstanceDataCube();
 	void createCommandBuffersCube();
@@ -452,7 +461,7 @@ private:
 		
 		//createTextureImage();
 		//createTextureImageView();
-		//createTextureSampler();
+		createTextureSampler();
 		
 		loadModel();
 		createGeometryBuffer(vertices, vertexBuffer, vertexBufferMemory);
@@ -463,7 +472,7 @@ private:
 		createIndexBuffer(indices_mirror, indexBuffer_mirror, indexBufferMemory_mirror);
 		createUniformBuffers();
 		createDescriptorPool();
-		createDescriptorSets();
+		//createDescriptorSets();
 		createImguiContext();
 		createCommandBuffers();
 		createSyncObjects();
@@ -471,23 +480,24 @@ private:
 		//Cube Scene
 		createCommandBuffersCube();
 		prepareInstanceDataCube();
-
+		
 		//Reflect
-		/*
-		createRenderPassReflect();
-		createGraphicsPipelineReflect();
+		createUniformBufferReflect();
+		createDescriptorSetLayoutReflect();
+		createDescriptorSetReflect();
+		reflectSceneSetup();
 		createReflectImage();
 		createReflectFramebuffer();
 		createCommandBuffers_Reflect();
-		createUniformBufferReflect();
-		createDescriptorSetReflect();
-		createReflectSyncObjects();
-		*/
-
+		
+		createDescriptorSets();
+		
+		/*
 		//Object picker setup
 		imagePickSetup();
 		createDescriptorSetObjectPicker();
 		setupPickingCommandBuffer();
+		*/
 	}
 
 	void cleanup() {
@@ -558,7 +568,6 @@ namespace std {
 }
 
 #include "VulkanTools.hpp"
-#include "VulkanReflect.hpp"
 #include "VulkanDescriptor.hpp"
 #include "VulkanInstance.hpp"
 #include "VulkanDevice.hpp"
@@ -572,5 +581,6 @@ namespace std {
 #include "VulkanImgui.hpp"
 #include "VulkanSceneCube.hpp"
 #include "VulkanObjectPick.hpp"
+#include "VulkanReflect.hpp"
 
 #endif

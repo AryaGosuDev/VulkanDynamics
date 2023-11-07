@@ -171,6 +171,15 @@ namespace VkApplication {
 
 				v1.vertexNormal = v2.vertexNormal = v3.vertexNormal = triNormal;
 
+				v1.texCoords = { attrib.texcoords[2 * shape.mesh.indices[i].texcoord_index + 0],
+								 attrib.texcoords[2 * shape.mesh.indices[i].texcoord_index + 1] };
+
+				v2.texCoords = { attrib.texcoords[2 * shape.mesh.indices[i + 1].texcoord_index + 0],
+								 attrib.texcoords[2 * shape.mesh.indices[i + 1].texcoord_index + 1] };
+
+				v3.texCoords = { attrib.texcoords[2 * shape.mesh.indices[i + 2].texcoord_index + 0],
+								 attrib.texcoords[2 * shape.mesh.indices[i + 2].texcoord_index + 1] };
+
 				vertices_mirror.push_back(v1);
 				vertices_mirror.push_back(v2);
 				vertices_mirror.push_back(v3);

@@ -18,7 +18,14 @@ namespace VkApplication {
         fragmentLayoutBinding.pImmutableSamplers = nullptr;
         fragmentLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-        std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, fragmentLayoutBinding };
+        VkDescriptorSetLayoutBinding reflectionTextureBinding{};
+        reflectionTextureBinding.binding = 2;  // Ensure the binding number is unique within the set
+        reflectionTextureBinding.descriptorCount = 1;
+        reflectionTextureBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        reflectionTextureBinding.pImmutableSamplers = nullptr;
+        reflectionTextureBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        std::array<VkDescriptorSetLayoutBinding, 3> bindings = { uboLayoutBinding, fragmentLayoutBinding, reflectionTextureBinding };
         VkDescriptorSetLayoutCreateInfo layoutInfo{};
         layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -66,6 +73,11 @@ namespace VkApplication {
         allocInfo.descriptorSetCount = static_cast<uint32_t>(swapChainImages.size());
         allocInfo.pSetLayouts = layouts.data();
 
+        VkDescriptorImageInfo imageInfo{};
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageInfo.imageView = textureImageView_reflect;  // This is the reflection texture's image view
+        imageInfo.sampler = textureSampler;  // This is a sampler object you've created
+
         descriptorSets.resize(swapChainImages.size());
         if (vkAllocateDescriptorSets(device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate descriptor sets!");
@@ -82,7 +94,7 @@ namespace VkApplication {
             bufferFragInfo.offset = 0;
             bufferFragInfo.range = sizeof(UniformFragmentObject);
 
-            std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+            std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
 
             descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             descriptorWrites[0].dstSet = descriptorSets[i];
@@ -99,6 +111,16 @@ namespace VkApplication {
             descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             descriptorWrites[1].descriptorCount = 1;
             descriptorWrites[1].pBufferInfo = &bufferFragInfo;
+
+            descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[2].dstSet = descriptorSets[i];
+            descriptorWrites[2].dstBinding = 2;
+            descriptorWrites[2].dstArrayElement = 0;
+            descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            descriptorWrites[2].descriptorCount = 1;
+            descriptorWrites[2].pBufferInfo = nullptr;
+            descriptorWrites[2].pTexelBufferView = nullptr;
+            descriptorWrites[2].pImageInfo = &imageInfo;
 
             vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
         }

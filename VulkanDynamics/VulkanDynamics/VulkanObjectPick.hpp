@@ -212,18 +212,18 @@ namespace VkApplication {
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
-		//auto bindingDescription = Vertex::getBindingDescription();
-		//auto attributeDescriptions = Vertex::getAttributeDescriptions();
 		std::vector<VkVertexInputBindingDescription> bindingDescriptions;
 		std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
-		std::array<VkVertexInputAttributeDescription, 3> attrib1 = Vertex::getAttributeDescriptions();
-		std::array<VkVertexInputAttributeDescription, 4> attrib2 = InstanceData::getAttributeDescriptions();
 
 		// Vertex input bindings
 		// The instancing pipeline uses a vertex input state with two bindings
-		bindingDescriptions = { Vertex::getBindingDescription(), InstanceData::getBindingDescription() };
-		attributeDescriptions.insert(end(attributeDescriptions), begin(attrib1), end(attrib1));
-		attributeDescriptions.insert(end(attributeDescriptions), begin(attrib2), end(attrib2));
+		bindingDescriptions.push_back(Vertex::getBindingDescription());
+		bindingDescriptions.push_back(InstanceData::getBindingDescription());
+		{
+			auto tempVertAttrib = Vertex::getAttributeDescriptions(); auto tempInstaAttrib = InstanceData::getAttributeDescriptions();
+			attributeDescriptions.insert(end(attributeDescriptions), begin(tempVertAttrib), end(tempVertAttrib));
+			attributeDescriptions.insert(end(attributeDescriptions), begin(tempInstaAttrib), end(tempInstaAttrib));
+		}
 
 		vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
 		vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
@@ -467,7 +467,7 @@ namespace VkApplication {
 
 		VkSemaphore waitSemaphores[] = { renderStartSemaphoreOP };
 		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-		submitInfo.waitSemaphoreCount = 0;
+		submitInfo.waitSemaphoreCount = 0; // cancel this semaphore
 		submitInfo.pWaitSemaphores = waitSemaphores;
 		submitInfo.pWaitDstStageMask = waitStages;
 

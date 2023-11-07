@@ -88,12 +88,9 @@ namespace VkApplication {
 		_app->ufo_reflect.viewMatrix = glm::inverseTranspose(viewMatrix3x3);;
 		_app->ufo_reflect.eyeViewMatrix = glm::inverseTranspose(viewMatrix3x3);
 	}
-
+	
 	void updateUniformBuffer(VkApplication::MainVulkApplication* _app) {
 		if (motionFlying == true) {
-			//spindleAxis = glm::cross(mainEyeLoc, up);
-			//_app->ubo.view = copyView * glm::rotate(glm::mat4(1.0f), glm::radians((float)((theta / 180.0f) * glm::pi<float>())), spindleAxis);
-			//_app->ubo.view *= glm::rotate(glm::mat4(1.0f), glm::radians((float)((phi / 180.0f) * glm::pi<float>())), up); 
 
 			mainEyeLoc.x = 6.0f * sin(theta) * cos(phi);
 			mainEyeLoc.y = 6.0f * cos(theta);
@@ -128,7 +125,8 @@ namespace VkApplication {
 		glm::vec3 reflectedLookAt = centerLoc - 2.0f * (glm::dot(centerLoc, planeNormal) + planeDistance) * planeNormal;
 
 		// compute the reflected view matrix
-		_app->ubo_reflect.view = glm::lookAt(reflectedCameraPos, reflectedLookAt, glm::vec3(0.0f, 1.0f, 0.0f));;
+		_app->ubo_reflect.view = glm::lookAt(reflectedCameraPos, reflectedLookAt, up);
+		_app->ubo_reflect.lightPos = _app->ubo.lightPos;
 	}
 
 	void mainLoop(VkApplication::MainVulkApplication* _app) {
@@ -142,10 +140,8 @@ namespace VkApplication {
 		while (!(WindowRes = glfwWindowShouldClose(_app->window))) {
 			glfwPollEvents();
 			updateUniformBuffer(_app);
-			//updateUniformBuffer_reflect(_app);
-			//_app->transitionImageLayoutReflect();
-			//_app->drawFrameReflect();
-			//_app->drawFrame();
+			updateUniformBuffer_reflect(_app);
+			_app->drawFrameReflect();
 			_app->drawFrameCube();
 			//if (motionMode == 1) _app->drawObjectPick(pointx, pointy);
 		}

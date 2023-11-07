@@ -19,7 +19,7 @@ namespace VkApplication {
         depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
         depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
@@ -67,19 +67,18 @@ namespace VkApplication {
         
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-
-        //auto bindingDescription = Vertex::getBindingDescription();
-        //auto attributeDescriptions = Vertex::getAttributeDescriptions();
         std::vector<VkVertexInputBindingDescription> bindingDescriptions;
         std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
-        std::array<VkVertexInputAttributeDescription, 3> attrib1 = Vertex::getAttributeDescriptions();
-        std::array<VkVertexInputAttributeDescription, 4> attrib2 = InstanceData::getAttributeDescriptions();
 
         // Vertex input bindings
         // The instancing pipeline uses a vertex input state with two bindings
-        bindingDescriptions = { Vertex::getBindingDescription(), InstanceData::getBindingDescription() };
-        attributeDescriptions.insert(end(attributeDescriptions), begin(attrib1), end(attrib1));
-        attributeDescriptions.insert(end(attributeDescriptions), begin(attrib2), end(attrib2));
+        bindingDescriptions.push_back(Vertex::getBindingDescription());
+        bindingDescriptions.push_back(InstanceData::getBindingDescription());
+        {
+            auto tempVertAttrib = Vertex::getAttributeDescriptions(); auto tempInstaAttrib = InstanceData::getAttributeDescriptions();
+            attributeDescriptions.insert(end(attributeDescriptions), begin(tempVertAttrib), end(tempVertAttrib));
+            attributeDescriptions.insert(end(attributeDescriptions), begin(tempInstaAttrib), end(tempInstaAttrib));
+        }
 
         vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
         vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
@@ -148,10 +147,17 @@ namespace VkApplication {
         colorBlending.blendConstants[2] = 0.0f;
         colorBlending.blendConstants[3] = 0.0f;
 
+        VkPushConstantRange pushConstantRange{};
+        pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;  // Using in the fragment shader
+        pushConstantRange.offset = 0;
+        pushConstantRange.size = sizeof(PushConstants);
+
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutInfo.setLayoutCount = 1;
         pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
+        pipelineLayoutInfo.pushConstantRangeCount = 1;
+        pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
         if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
             throw std::runtime_error("failed to create pipeline layout!");
@@ -198,6 +204,10 @@ namespace VkApplication {
 
         //cube pipeline
         if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipelines.cube) != VK_SUCCESS)
+            throw std::runtime_error("failed to create graphics pipeline!");
+
+        // mirror same as cube
+        if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipelines.mirror) != VK_SUCCESS)
             throw std::runtime_error("failed to create graphics pipeline!");
 
         vertShaderCode = readFile("shaders/vertGround.spv");

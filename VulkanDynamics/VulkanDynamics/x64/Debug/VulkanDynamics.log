@@ -1,21 +1,19 @@
 ﻿  VulkanDynamics.cpp
-C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanReflect.hpp(441,45): warning C4244: 'argument': conversion from 'float' to 'uint32_t', possible loss of data
-C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanReflect.hpp(441,21): warning C4244: 'argument': conversion from 'float' to 'uint32_t', possible loss of data
-C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanReflect.hpp(465,33): warning C4244: '=': conversion from 'float' to 'uint32_t', possible loss of data
-C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanReflect.hpp(466,34): warning C4244: '=': conversion from 'float' to 'uint32_t', possible loss of data
-C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanRenderSettings.hpp(182,54): warning C4267: '=': conversion from 'size_t' to 'uint32_t', possible loss of data
+C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanRenderSettings.hpp(188,54): warning C4267: '=': conversion from 'size_t' to 'uint32_t', possible loss of data
 C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanObjectPick.hpp(295,48): warning C4267: '=': conversion from 'size_t' to 'uint32_t', possible loss of data
-C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanDynamics.cpp(98,37): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
+C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanReflect.hpp(140,33): warning C4244: '=': conversion from 'unsigned int' to 'float', possible loss of data
+C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanReflect.hpp(141,34): warning C4244: '=': conversion from 'unsigned int' to 'float', possible loss of data
+C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanDynamics.cpp(95,37): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
           with
           [
               T=float
           ]
-C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanDynamics.cpp(99,24): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
+C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanDynamics.cpp(96,24): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
           with
           [
               T=float
           ]
-C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanDynamics.cpp(100,37): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
+C:\Users\karratdev\Projects\VulkanDynamics\VulkanDynamics\VulkanDynamics\VulkanDynamics.cpp(97,37): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
           with
           [
               T=float

@@ -15,10 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\vertex.vert" />
-    <None Include="shaders\fragment.frag" />
-    <None Include="shaders\fragmentDynamic.frag" />
-    <None Include="shaders\vertexDynamic.vert" />
     <None Include="shaders\fragmentDynamicSimple.frag" />
     <None Include="shaders\vertexDynamicSimple.vert" />
     <None Include="shaders\ui.frag" />
