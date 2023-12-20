@@ -319,6 +319,7 @@ namespace VkApplication {
         check_vk_result(vkResetFences(device, 1, &inFlightFences_reflect));
 
         updateUniformBufferReflect();
+        updateInstanceDataCubeBuffer();
 
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -397,6 +398,9 @@ namespace VkApplication {
         renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
         renderPassInfo.pClearValues = clearValues.data();
 
+        PushConstants pushConstants;
+        pushConstants.useReflectionSampler = false;  // or false, depending on the object
+
         vkCmdBeginRenderPass(commandBuffer_Reflect, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
         vkCmdBindPipeline(commandBuffer_Reflect, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline_reflect);
 
@@ -408,13 +412,16 @@ namespace VkApplication {
         vertexBuffers[0] = { instanceBufferCube.buffer };
         vkCmdBindVertexBuffers(commandBuffer_Reflect, 1, 1, vertexBuffers, offsets);
         vkCmdBindIndexBuffer(commandBuffer_Reflect, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdPushConstants(commandBuffer_Reflect, pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &pushConstants);
         vkCmdDrawIndexed(commandBuffer_Reflect, static_cast<uint32_t>(indices.size()), SPHERE_INSTANCE_COUNT_CUBE, 0, 0, 0);
 
+        pushConstants.useReflectionSampler = true;
         vertexBuffers[0] = { vertexBuffer_ground };
         vkCmdBindDescriptorSets(commandBuffer_Reflect, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout_reflect, 0, 1, &descriptorSetReflect, 0, nullptr);
         vkCmdBindPipeline(commandBuffer_Reflect, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline_reflect);
         vkCmdBindVertexBuffers(commandBuffer_Reflect, 0, 1, vertexBuffers, offsets);
         vkCmdBindIndexBuffer(commandBuffer_Reflect, indexBuffer_ground, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdPushConstants(commandBuffer_Reflect, pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &pushConstants);
         vkCmdDrawIndexed(commandBuffer_Reflect, static_cast<uint32_t>(indices_ground.size()), 1, 0, 0, 0);
 
         // End the picking render pass

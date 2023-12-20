@@ -148,7 +148,7 @@ namespace VkApplication {
         colorBlending.blendConstants[3] = 0.0f;
 
         VkPushConstantRange pushConstantRange{};
-        pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;  // Using in the fragment shader
+        pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;  // Using in the fragment shader
         pushConstantRange.offset = 0;
         pushConstantRange.size = sizeof(PushConstants);
 

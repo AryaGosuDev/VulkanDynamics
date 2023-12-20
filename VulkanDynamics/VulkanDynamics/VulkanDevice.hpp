@@ -128,7 +128,17 @@ namespace VkApplication {
 			requiredExtensions.erase(extension.extensionName);
 		}
 
-		return requiredExtensions.empty();
+		// Check if there are any required extensions that are not supported
+		if (!requiredExtensions.empty()) {
+			std::cout << "\033[1;31mUnsupported extensions required:\033[0m" << std::endl;  // Red color start
+			for (const auto& requiredExt : requiredExtensions) {
+				std::cout << "\t" << requiredExt << std::endl;
+			}
+			std::cout << "\033[0m";  // Reset to default color
+			return false;
+		}
+
+		return true;
 	}
 
 	QueueFamilyIndices MainVulkApplication::findQueueFamilies(VkPhysicalDevice device) {

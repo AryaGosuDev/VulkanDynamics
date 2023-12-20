@@ -39,7 +39,7 @@ namespace VkApplication {
 	float QuadraticAttenuation = 0.0f;
 	glm::mat4 normalModelViewMatrix;
 
-	glm::vec3 mainEyeLoc(6.0, 0.0, 0.0);
+	glm::vec3 mainEyeLoc(-6.0, 1.0, 0.0);
 	glm::vec3 centerLoc(0.0, 0.0, 0.0);
 	glm::vec3 up(0.0, 1.0, 0.0);
 	float fov = glm::radians<float>(90.0f);
@@ -109,6 +109,10 @@ namespace VkApplication {
 		if (changeLightPos[2] == 1) {
 			_app->ubo.lightPos.z += lightPositionz;
 			changeLightPos[2] = 0;
+		}
+		if (kick == true) {
+			_app->keyControl.kickParticle = true;
+			kick = false;
 		}
 	}
 

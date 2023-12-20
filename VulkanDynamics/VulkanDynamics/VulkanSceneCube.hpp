@@ -6,6 +6,7 @@ namespace VkApplication {
     const int CUBE_H = 3;
     const int CUBE_L = 3;
     glm::vec3 centerOfCube(0.0, 1.0, 0.0);
+    std::vector<InstanceData> instanceData;
 
     // Contains the instanced data
     struct InstanceBuffer {
@@ -31,7 +32,9 @@ namespace VkApplication {
             throw std::runtime_error("failed to acquire swap chain image!");
         }
         
+        updateParticleSystem();
         updateUniformBuffer(imageIndex);
+        updateInstanceDataCubeBuffer();
 
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -85,7 +88,6 @@ namespace VkApplication {
         vkCmdPushConstants(commandBuffersCube[imageIndex], pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants), &pushConstants);
         vkCmdDrawIndexed(commandBuffersCube[imageIndex], static_cast<uint32_t>(indices_ground.size()), 1, 0, 0, 0);
 
-        
         //draw mirror
         pushConstants.useReflectionSampler = true;
         vertexBuffers[0] = { vertexBuffer_mirror };
@@ -191,7 +193,6 @@ namespace VkApplication {
     }
 
     void MainVulkApplication::prepareInstanceDataCube() {
-        std::vector<InstanceData> instanceData;
         instanceData.resize(SPHERE_INSTANCE_COUNT_CUBE);
         double invDistance = 2.0;
         
@@ -240,6 +241,28 @@ namespace VkApplication {
 
         createBuffer(instanceBufferCube.size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, instanceBufferCube.buffer, instanceBufferCube.memory);
+
+        copyBuffer(stagingBuffer.buffer, instanceBufferCube.buffer, instanceBufferCube.size);
+
+        vkDestroyBuffer(device, stagingBuffer.buffer, nullptr);
+        vkFreeMemory(device, stagingBuffer.memory, nullptr);
+    }
+
+    void MainVulkApplication::updateInstanceDataCubeBuffer() {
+
+        struct {
+            VkDeviceMemory memory;
+            VkBuffer buffer;
+        } stagingBuffer;
+
+        createBuffer(instanceBufferCube.size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            stagingBuffer.buffer, stagingBuffer.memory);
+
+        void* data;
+        vkMapMemory(device, stagingBuffer.memory, 0, instanceBufferCube.size, 0, &data);
+        memcpy(data, instanceData.data(), static_cast<size_t>(instanceBufferCube.size));
+        vkUnmapMemory(device, stagingBuffer.memory);
 
         copyBuffer(stagingBuffer.buffer, instanceBufferCube.buffer, instanceBufferCube.size);
 

@@ -194,6 +194,7 @@ glslangValidator -V shaders/fragmentDynamicReflection.frag -o shaders/fragReflec
     <ClInclude Include="VulkanImgui.hpp" />
     <ClInclude Include="VulkanInstance.hpp" />
     <ClInclude Include="VulkanObjectPick.hpp" />
+    <ClInclude Include="VulkanParticle.hpp" />
     <ClInclude Include="VulkanReflect.hpp" />
     <ClInclude Include="VulkanRenderSettings.hpp" />
     <ClInclude Include="VulkanSceneArmKinematics.hpp" />

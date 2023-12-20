@@ -10,6 +10,7 @@ bool stopAnimation = true;
 int motionMode = 0;
 bool selectMode = false;
 bool motionFlying = false;
+bool kick = false;
 double startX = 0;
 double startY = 0;
 
@@ -69,10 +70,13 @@ void readInput_callback(GLFWwindow* window, int key, int scancode, int action, i
 		changeLightPos[2] = 1;
 	}
 
-	else if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+	else if (key == GLFW_KEY_M && action == GLFW_PRESS) {
 		motionMode++;
 		if (motionMode == 3) motionMode = 0;
 
+	}
+	else if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+		kick = true;
 	}
 }
 

@@ -15,6 +15,7 @@
 #include <array>
 #include <chrono>
 #include <unordered_map>
+#include <unordered_set>
 #include <stack>
 
 #define GLM_FORCE_RADIANS
@@ -77,7 +78,7 @@ namespace VkApplication{
 	const std::string SIMPLESP_LOW = "models/singleSLow.obj";
 
 	const std::vector<const char*> deviceExtensions = {
-	VK_KHR_SWAPCHAIN_EXTENSION_NAME
+	VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME
 	};
 
 	struct QueueFamilyIndices {
@@ -229,6 +230,33 @@ struct {
 	VkPipeline mirror;
 } pipelines;
 
+struct Particle {
+	glm::vec3 oldPosition;
+	glm::vec3 position;
+	glm::vec3 velocity;
+	glm::vec3 force;
+	float mass;
+};
+
+struct Spring {
+	int particle1Indx;
+	int particle2Indx;
+	int springID;
+	float restLength;
+	float stiffness;
+	float dampening;
+	glm::vec3 CenterOfMass = glm::vec3 ( 0.0,0.0,0.0);
+
+	Spring() = default;
+	Spring(int _p1, int _p2, int _sID, float _Lrest, float _stf, float _damp, glm::vec3 _COM = glm::vec3(0,0,0)) :
+		particle1Indx(_p1), particle2Indx(_p2), springID(_sID), restLength(_Lrest), stiffness(_stf), dampening(_damp),
+		CenterOfMass(_COM){}
+};
+
+struct KeyControls {
+	bool kickParticle = false;
+};
+
 class MainVulkApplication {
 
 	friend void mainLoop(VkApplication::MainVulkApplication*);
@@ -267,6 +295,7 @@ private:
 
 	GLFWwindow* window;
 	ImGui_ImplVulkanH_Window imgui_window;
+	KeyControls keyControl;
 
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
@@ -440,6 +469,10 @@ private:
 	void prepareInstanceDataCube();
 	void createCommandBuffersCube();
 	void drawFrameCube();
+	void updateInstanceDataCubeBuffer();
+
+	void prepareParticleSystem();
+	void updateParticleSystem();
 
 	void initVulkan(std::string appName ) {
 
@@ -491,6 +524,8 @@ private:
 		createCommandBuffers_Reflect();
 		
 		createDescriptorSets();
+
+		prepareParticleSystem();
 		
 		/*
 		//Object picker setup
@@ -567,6 +602,7 @@ namespace std {
 	};
 }
 
+#include "VulkanParticle.hpp"
 #include "VulkanTools.hpp"
 #include "VulkanDescriptor.hpp"
 #include "VulkanInstance.hpp"
