@@ -211,18 +211,35 @@ namespace VkApplication {
 		ImGui::NewFrame();
 		ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
+		// Only create a simple window to show framerate
+		{
+			ImGui::Begin("Performance"); // Create a window for performance display
+
+			// Retrieve the IO structure to access the framerate
+			ImGuiIO& io = ImGui::GetIO();
+			io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+			io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+			// Display the framerate
+			ImGui::Text("Application average: %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+
+			ImGui::End(); // End of the window
+		}
+
+		ImGui::Render();
+
+		/*
+
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
-		bool show_demo_window = true;
-		bool show_another_window = false;
 
 		{
 			static float f = 0.0f;
 			static int counter = 0;
 
-			ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+			ImGui::Begin("Performace");                          // Create a window called "Hello, world!" and append into it.
 
 			ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
 			ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
@@ -252,16 +269,7 @@ namespace VkApplication {
 		ImGui::End();
 		// Rendering
 		ImGui::Render();
-		/*
-		ImDrawData* draw_data = ImGui::GetDrawData(); draw_data->DisplaySize.x = 100; draw_data->DisplaySize.y = 100;
-		const bool is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);
-		if (!is_minimized) {
-			imgui_window.ClearValue.color.float32[0] = clear_color.x * clear_color.w;
-			imgui_window.ClearValue.color.float32[1] = clear_color.y * clear_color.w;
-			imgui_window.ClearValue.color.float32[2] = clear_color.z * clear_color.w;
-			imgui_window.ClearValue.color.float32[3] = clear_color.w;
-			
-		}
+
 		*/
 
 	}

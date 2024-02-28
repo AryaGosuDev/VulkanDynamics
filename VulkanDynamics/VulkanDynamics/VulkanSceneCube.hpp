@@ -106,7 +106,7 @@ namespace VkApplication {
         VkRenderPassBeginInfo info = {};
         info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         info.renderPass = imgui_window.RenderPass;
-        info.framebuffer = swapChainFramebuffers[currentFrame];
+        info.framebuffer = swapChainFramebuffers[imageIndex];
         info.renderArea.extent = swapChainExtent;
         info.clearValueCount = 1;
 
@@ -144,7 +144,7 @@ namespace VkApplication {
         submitInfo.pSignalSemaphores = signalSemaphores;
 
         check_vk_result(vkResetFences(device, 1, &inFlightFences[currentFrame]));
-         
+        
         VkResult returnThis = vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]);
         if (returnThis != VK_SUCCESS) {
             throw std::runtime_error("failed to submit draw command buffer! " + std::to_string(returnThis));

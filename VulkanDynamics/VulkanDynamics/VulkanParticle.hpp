@@ -13,7 +13,7 @@ namespace VkApplication {
 	int totalSprings = 0;
 
 	float UNIVERSAL_SPRING_CONSTANT = 1.0f;
-	float UNIVERSAL_SPRING_DAMPENING = 0.01f;
+	float UNIVERSAL_SPRING_DAMPENING = 0.51f;
 
 	float FIXED_SPRING_CONSTANT = 0.5f;
 	float FIXED_SPRING_DAMPENING = 0.1f;
