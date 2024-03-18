@@ -147,7 +147,7 @@ namespace VkApplication {
 			updateUniformBuffer_reflect(_app);
 			_app->drawFrameReflect();
 			_app->drawFrameCube();
-			//if (motionMode == 1) _app->drawObjectPick(pointx, pointy);
+			if (motionMode == 1) _app->drawObjectPick(pointx, pointy);
 		}
 		vkDeviceWaitIdle(_app->device);
 	}

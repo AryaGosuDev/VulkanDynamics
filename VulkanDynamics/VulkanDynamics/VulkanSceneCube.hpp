@@ -215,6 +215,7 @@ namespace VkApplication {
                     instanceData[indx].rot = glm::vec3(1.0, 1.0, 1.0);
                     instanceData[indx].texIndex = 1;
                     instanceData[indx].instanceColor = glm::vec3(0, 0, indx);
+                    instanceData[indx].realInstanceColor = glm::vec3(1.0f, 1.0f, 1.0f);
                 }
             }
         }

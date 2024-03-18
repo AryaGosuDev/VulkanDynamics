@@ -148,6 +148,7 @@ struct InstanceData {
 	glm::vec3 rot;
 	uint32_t texIndex;
 	glm::vec3 instanceColor;
+	glm::vec3 realInstanceColor;
 
 	static VkVertexInputBindingDescription getBindingDescription() {
 		VkVertexInputBindingDescription bindingDescription = {};
@@ -159,7 +160,7 @@ struct InstanceData {
 	}
 
 	static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions() {
-		std::vector<VkVertexInputAttributeDescription> attributeDescriptions(4);
+		std::vector<VkVertexInputAttributeDescription> attributeDescriptions(5);
 
 		attributeDescriptions[0].binding = 1;
 		attributeDescriptions[0].location = 4;
@@ -181,11 +182,17 @@ struct InstanceData {
 		attributeDescriptions[3].format = VK_FORMAT_R32G32B32_SFLOAT;
 		attributeDescriptions[3].offset = offsetof(InstanceData, instanceColor);
 
+		attributeDescriptions[4].binding = 1;
+		attributeDescriptions[4].location = 8;
+		attributeDescriptions[4].format = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescriptions[4].offset = offsetof(InstanceData, realInstanceColor);
+
 		return attributeDescriptions;
 	}
 
 	bool operator==(const InstanceData& other) const {
-		return pos == other.pos && rot == other.rot && texIndex == other.texIndex && instanceColor == other.instanceColor;
+		return pos == other.pos && rot == other.rot && texIndex == other.texIndex && 
+			instanceColor == other.instanceColor && realInstanceColor == other.realInstanceColor ;
 	}
 };
 
@@ -255,6 +262,7 @@ struct Spring {
 
 struct KeyControls {
 	bool kickParticle = false;
+	int  objectPicked = -1;
 };
 
 class MainVulkApplication {
@@ -527,12 +535,12 @@ private:
 
 		prepareParticleSystem();
 		
-		/*
+		
 		//Object picker setup
 		imagePickSetup();
 		createDescriptorSetObjectPicker();
 		setupPickingCommandBuffer();
-		*/
+		
 	}
 
 	void cleanup() {

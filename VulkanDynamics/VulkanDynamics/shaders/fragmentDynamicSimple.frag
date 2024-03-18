@@ -30,18 +30,14 @@ layout (location = 0) out vec4 outColor;
 
 void main() {
 	vec3 lightDirectionView = normalize ( lightPos - vec3(Position));
-	float lightDistance = length(lightPos - vec3(Position));
-
-	vec3 halfVector = normalize(lightDirectionView + vec3( vec3(ufbo.EyeDirection) - vec3(Position) )  );
 
 	float diffuse = max(0.0f, dot(Normal, lightDirectionView));
-	vec3 scatteredLight = vec3(ufbo.LightColor * diffuse) ;
+	//vec3 scatteredLight = vec3(ufbo.LightColor * diffuse) ;
+	vec3 scatteredLight = fragColor * diffuse ;
 
 	if (pc.useReflectionSampler) {
 		outColor = texture(reflectSampler, texCoords);
 	} else {
 		outColor = vec4(scatteredLight, 1.0f);
 	}
-
-	//outColor = vec4 ( 1.0f,1.0f,1.0f, 1.0f );
 }

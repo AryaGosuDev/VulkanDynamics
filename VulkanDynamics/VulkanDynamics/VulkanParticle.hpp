@@ -18,7 +18,7 @@ namespace VkApplication {
 	float FIXED_SPRING_CONSTANT = 0.5f;
 	float FIXED_SPRING_DAMPENING = 0.1f;
 
-	//TODO : restoritive forces. Eventually bring the particles back to their original locations graudally after
+	// TODO : restoritive forces. Eventually bring the particles back to their original locations graudally after
 	// force dwindles to 0 again. Pull the particles back into place.
 
 	glm::vec3 calculateSpringForce(Spring & spring) {
@@ -155,9 +155,11 @@ namespace VkApplication {
 	void MainVulkApplication::updateParticleSystem() {
 
 		//kick off an impulse force
-		if ( keyControl.kickParticle == true ) {
-			particles[0].force = glm::vec3(150.0, 20.0, 150.0);
-			integrate(0);
+		if ( keyControl.kickParticle == true && keyControl.objectPicked != -1 ) {
+			//particles[0].force = glm::vec3(150.0, 20.0, 150.0);
+			//integrate(0);
+			particles[keyControl.objectPicked].force = glm::vec3(150.0, 20.0, 150.0);
+			integrate(keyControl.objectPicked);
 			//semiImplicitEuler(0);
 			keyControl.kickParticle = false;
 		}
@@ -199,7 +201,7 @@ namespace VkApplication {
 		//if (elapsedTicks % 500 == 0) {
 			//handleCollisionsAndConstraints();
 		//}
-		
+		/*
 		if (elapsedTicks % 100 == 0) {
 			std::cout << "Particle 0 position: " << particles[0].position.x << ", " 
 				                                 << particles[0].position.y << ", "  
@@ -212,7 +214,7 @@ namespace VkApplication {
 												 << particles[0].force.z << std::endl;
 			std::cout << std::endl;
 		}
-		
+		*/
 		//update particle positions
 		for (int i = 0; i < particles.size(); ++i)
 			instanceData[i].pos = particles[i].position;

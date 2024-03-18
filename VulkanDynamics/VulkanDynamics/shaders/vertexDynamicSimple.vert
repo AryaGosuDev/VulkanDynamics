@@ -18,6 +18,7 @@ layout (location = 4) in vec3 instancePos;
 layout (location = 5) in vec3 instanceRot;
 layout (location = 6) in int instanceTexIndex;
 layout (location = 7) in vec3 instanceColor;
+layout (location = 8) in vec3 instanceColorReal;
 
 layout(push_constant) uniform PushConstants {
     bool useReflectionSampler;
@@ -36,7 +37,7 @@ void main() {
 	Normal = normalView *  VertexNormal;
 
 	LightPos = vec3( ubo.view * ubo.model * ubo.lightPos);
-    fragColor = color;
+    fragColor = instanceColorReal;
 	vec4 pos ;
 	if (pc.useReflectionSampler) {
 		pos = vec4(position , 1.0);

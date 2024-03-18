@@ -6,7 +6,6 @@ VK_FORMAT_R8G8B8A8_UNORM
 VK_FORMAT_R32_UINT
 */
 
-
 #define FB_COLOR_FORMAT VK_FORMAT_R32_UINT
 
 namespace VkApplication {
@@ -523,8 +522,20 @@ namespace VkApplication {
 		vkUnmapMemory(device, stagingBufferMemory_OP);
 
 		uint32_t* pixelData = static_cast<uint32_t*>(pixelValue);
-		std::cout << *pixelData << std::endl;
-		//std::cout << pixelValue << std::endl;
+		if (*pixelData != 0) {
+			if (keyControl.objectPicked == -1) {
+				keyControl.objectPicked = *pixelData;
+				instanceData[keyControl.objectPicked].realInstanceColor = glm::vec3(0.0f, 1.0f, 0.0f);
+			}
+			else {
+				if (*pixelData != keyControl.objectPicked) {
+					instanceData[keyControl.objectPicked].realInstanceColor = glm::vec3(1.0f, 1.0f, 1.0f);
+					keyControl.objectPicked = *pixelData;
+					instanceData[keyControl.objectPicked].realInstanceColor = glm::vec3(0.0f, 1.0f, 0.0f);
+				}
+			}
+		}
+		//std::cout << *pixelData << std::endl;
 	}
 }
 
